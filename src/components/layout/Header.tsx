@@ -94,7 +94,7 @@ export const Header: React.FC = () => {
             {isAuthenticated ? (
               <div className="flex items-center space-x-4">
                 <div className="relative">
-                  <Link to="/profile\" className="flex items-center">
+                  <Link to="/profile" className="flex items-center">
                     <span className="text-sm font-medium text-gray-700 mr-2">
                       {user?.name}
                     </span>

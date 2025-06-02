@@ -13,6 +13,7 @@ import { InterviewPage } from "./pages/InterviewPage";
 import { InterviewSessionPage } from "./pages/InterviewSessionPage";
 import { ResumePage } from "./pages/ResumePage";
 import { CareerPage } from "./pages/CareerPage";
+import { ProfilePage } from "./pages/ProfilePage";
 import { useAuthStore } from "./store/authStore";
 
 // Protected route component
@@ -22,7 +23,8 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        Loading...
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-600 mb-4"></div>
+        <span className="ml-3">Loading your session...</span>
       </div>
     );
   }
@@ -71,6 +73,15 @@ function App() {
           element={
             <ProtectedRoute>
               <DashboardPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <ProfilePage />
             </ProtectedRoute>
           }
         />

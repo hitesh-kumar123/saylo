@@ -1,8 +1,9 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Button } from "../ui/Button";
 import { useAuthStore } from "../../store/authStore";
 import { motion } from "framer-motion";
+import { API_URL } from "../../config";
 
 interface LoginFormProps {
   onSuccess?: () => void;
@@ -18,9 +19,32 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
     register,
     handleSubmit,
     formState: { errors },
+    reset,
   } = useForm<LoginFormData>();
   const { login, isLoading, error, clearError, isAuthenticated } =
     useAuthStore();
+  const [serverStatus, setServerStatus] = useState<
+    "checking" | "online" | "offline"
+  >("checking");
+
+  // Check server status
+  useEffect(() => {
+    const checkServerStatus = async () => {
+      try {
+        const response = await fetch(`${API_URL}/auth/status`, {
+          method: "HEAD",
+          // Short timeout to quickly determine if server is available
+          signal: AbortSignal.timeout(2000),
+        });
+        setServerStatus("online");
+      } catch (error) {
+        console.error("Server status check failed:", error);
+        setServerStatus("offline");
+      }
+    };
+
+    checkServerStatus();
+  }, []);
 
   // If already authenticated, call onSuccess
   useEffect(() => {
@@ -29,8 +53,15 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
     }
   }, [isAuthenticated, onSuccess]);
 
+  // Clear any previous errors when component mounts
+  useEffect(() => {
+    clearError();
+  }, [clearError]);
+
   const onSubmit = async (data: LoginFormData) => {
+    clearError(); // Clear any previous errors
     await login(data.email, data.password);
+    // No need to call onSuccess here, the useEffect will handle it if login is successful
   };
 
   return (
@@ -44,6 +75,31 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
         Login to your account
       </h2>
 
+      {serverStatus === "offline" && (
+        <div className="bg-yellow-50 text-yellow-800 p-4 rounded-md mb-6">
+          <div className="flex">
+            <div className="flex-shrink-0">
+              <svg
+                className="h-5 w-5 text-yellow-400"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                  clipRule="evenodd"
+                />
+              </svg>
+            </div>
+            <div className="ml-3">
+              <p className="text-sm font-medium">
+                Server appears to be offline. Login may not work.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {error && (
         <div className="bg-red-50 text-red-800 p-4 rounded-md mb-6">
           <div className="flex">
@@ -51,7 +107,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
               <svg
                 className="h-5 w-5 text-red-400"
                 viewBox="0 0 20 20"
-                fill="currentColor11"
+                fill="currentColor"
               >
                 <path
                   fillRule="evenodd"

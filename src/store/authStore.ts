@@ -33,8 +33,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       });
 
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || "Login failed");
+        const errorData = await response.json().catch(() => ({
+          message: `Server error: ${response.status} ${response.statusText}`,
+        }));
+        throw new Error(errorData.message || "Login failed");
       }
 
       const data = await response.json();
@@ -49,8 +51,14 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         token: data.token,
       });
     } catch (error) {
+      console.error("Login error:", error);
       set({
-        error: error instanceof Error ? error.message : "Login failed",
+        error:
+          error instanceof Error
+            ? error.message
+            : error instanceof Response
+            ? `Network error: ${error.status} ${error.statusText}`
+            : "Login failed - Check if the server is running",
         isLoading: false,
       });
     }
@@ -105,6 +113,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     }
 
     try {
+      // First try with the status endpoint
       const response = await fetch(`${API_URL}/auth/verify`, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -126,10 +135,12 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       });
       return true;
     } catch (error) {
-      // Error verifying token
-      localStorage.removeItem("token");
-      set({ isAuthenticated: false, user: null, token: null });
-      return false;
+      console.error("Error verifying token:", error);
+
+      // If there's a network error, don't log out the user immediately
+      // Instead, assume the token is still valid until proven otherwise
+      // This prevents logout on refresh when server is down
+      return true;
     }
   },
 }));

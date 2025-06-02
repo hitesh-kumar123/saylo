@@ -31,13 +31,18 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 };
 
 function App() {
-  const { checkAuth } = useAuthStore();
+  const { checkAuth, isAuthenticated } = useAuthStore();
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const initAuth = async () => {
-      await checkAuth();
-      setIsLoading(false);
+      try {
+        await checkAuth();
+      } catch (err) {
+        console.error("Authentication initialization error:", err);
+      } finally {
+        setIsLoading(false);
+      }
     };
 
     initAuth();
@@ -46,7 +51,8 @@ function App() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        Loading...
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-600 mb-4"></div>
+        <span className="ml-3">Loading your session...</span>
       </div>
     );
   }

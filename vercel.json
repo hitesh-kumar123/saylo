@@ -1,18 +1,6 @@
 {
-  "version": 2,
-  "builds": [
-    {
-      "src": "index.html",
-      "use": "@vercel/static-build",
-      "config": { "distDir": "dist" }
-    }
-  ],
   "buildCommand": "npm install && npm run build",
   "outputDirectory": "dist",
   "devCommand": "npm run dev",
-  "routes": [{ "src": "/(.*)", "dest": "/index.html" }],
-  "env": {
-    "VITE_API_URL": "https://your-backend.example.com/api",
-    "VITE_JITSI_DOMAIN": "meet.jit.si"
-  }
+  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
 }

@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "../store/authStore";
-import { API_URL } from "../config";
 import { User } from "../types";
 import { motion } from "framer-motion";
 
@@ -13,44 +12,13 @@ export const ProfilePage: React.FC = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchUserProfile = async () => {
-      // If we already have the user data from the store, no need to fetch
-      if (storeUser) {
-        setUser(storeUser);
-        return;
-      }
-
-      if (!token) {
-        setError("No authentication token found");
-        return;
-      }
-
-      setIsLoading(true);
-      setError(null);
-
-      try {
-        const response = await fetch(`${API_URL}/auth/verify`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        if (!response.ok) {
-          throw new Error("Failed to fetch user profile");
-        }
-
-        const data = await response.json();
-        setUser(data.user);
-      } catch (err) {
-        console.error("Error fetching user profile:", err);
-        setError("Failed to load profile. Please try again later.");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchUserProfile();
-  }, [storeUser, token]);
+    // Since we're using local storage now, just use the user from the store
+    if (storeUser) {
+      setUser(storeUser);
+    } else if (!isAuthenticated) {
+      setError("User not authenticated");
+    }
+  }, [storeUser, isAuthenticated]);
 
   const handleLogout = () => {
     logout();

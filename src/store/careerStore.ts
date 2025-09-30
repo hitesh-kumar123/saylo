@@ -1,6 +1,6 @@
-import { create } from 'zustand';
-import { CareerPath, Resource } from '../types';
-import { API_URL } from '../config';
+import { create } from "zustand";
+import { CareerPath, Resource } from "../types";
+import { LocalDataService } from "../services/localDataService";
 
 interface CareerState {
   careerPaths: CareerPath[];
@@ -23,24 +23,15 @@ export const useCareerStore = create<CareerState>((set) => ({
   fetchCareerPaths: async () => {
     set({ isLoading: true, error: null });
     try {
-      // In a real app, this would make a fetch request to your API
-      const response = await fetch(`${API_URL}/career-paths`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        },
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Failed to fetch career paths');
-      }
-
-      const careerPaths = await response.json();
+      const careerPaths = await LocalDataService.getCareerPaths();
       set({ careerPaths, isLoading: false });
     } catch (error) {
-      set({ 
-        error: error instanceof Error ? error.message : 'Failed to fetch career paths', 
-        isLoading: false 
+      set({
+        error:
+          error instanceof Error
+            ? error.message
+            : "Failed to fetch career paths",
+        isLoading: false,
       });
     }
   },
@@ -48,24 +39,17 @@ export const useCareerStore = create<CareerState>((set) => ({
   fetchRecommendedPaths: async (resumeId: string) => {
     set({ isLoading: true, error: null });
     try {
-      // In a real app, this would make a fetch request to your API
-      const response = await fetch(`${API_URL}/career-paths/recommended?resumeId=${resumeId}`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        },
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Failed to fetch recommended paths');
-      }
-
-      const recommendedPaths = await response.json();
+      const recommendedPaths = await LocalDataService.getRecommendedPaths(
+        resumeId
+      );
       set({ recommendedPaths, isLoading: false });
     } catch (error) {
-      set({ 
-        error: error instanceof Error ? error.message : 'Failed to fetch recommended paths', 
-        isLoading: false 
+      set({
+        error:
+          error instanceof Error
+            ? error.message
+            : "Failed to fetch recommended paths",
+        isLoading: false,
       });
     }
   },
@@ -73,24 +57,13 @@ export const useCareerStore = create<CareerState>((set) => ({
   fetchResources: async (pathId: string) => {
     set({ isLoading: true, error: null });
     try {
-      // In a real app, this would make a fetch request to your API
-      const response = await fetch(`${API_URL}/career-paths/${pathId}/resources`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        },
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Failed to fetch resources');
-      }
-
-      const resources = await response.json();
+      const resources = await LocalDataService.getResourcesByCategory(pathId);
       set({ resources, isLoading: false });
     } catch (error) {
-      set({ 
-        error: error instanceof Error ? error.message : 'Failed to fetch resources', 
-        isLoading: false 
+      set({
+        error:
+          error instanceof Error ? error.message : "Failed to fetch resources",
+        isLoading: false,
       });
     }
   },

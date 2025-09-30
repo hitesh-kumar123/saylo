@@ -80,7 +80,7 @@ export interface CareerPath {
 export interface Resource {
   id: string;
   title: string;
-  type: 'Article' | 'Course' | 'Book' | 'Video';
+  type: "Article" | "Course" | "Book" | "Video";
   url: string;
   description: string;
 }
@@ -89,9 +89,4 @@ export interface TavusConfig {
   replicaId: string;
   personaId: string;
   apiKey: string;
-}
-
-export interface DailyConfig {
-  roomUrl: string;
-  token?: string;
 }

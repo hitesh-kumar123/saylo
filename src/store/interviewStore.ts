@@ -1,6 +1,7 @@
-import { create } from 'zustand';
-import { InterviewSession, InterviewMetrics, EmotionDataPoint } from '../types';
-import { API_URL } from '../config';
+import { create } from "zustand";
+import { InterviewSession, InterviewMetrics, EmotionDataPoint } from "../types";
+import { LocalDataService } from "../services/localDataService";
+import { useAuthStore } from "./authStore";
 
 interface InterviewState {
   currentSession: InterviewSession | null;
@@ -23,27 +24,18 @@ export const useInterviewStore = create<InterviewState>((set, get) => ({
   startInterview: async (jobTitle: string) => {
     set({ isLoading: true, error: null });
     try {
-      // In a real app, this would make a fetch request to your API
-      const response = await fetch(`${API_URL}/interviews`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        },
-        body: JSON.stringify({ jobTitle }),
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Failed to start interview');
+      const { user } = useAuthStore.getState();
+      if (!user) {
+        throw new Error("User not authenticated");
       }
 
-      const session = await response.json();
+      const session = await LocalDataService.startInterview(user.id, jobTitle);
       set({ currentSession: session, isLoading: false });
     } catch (error) {
-      set({ 
-        error: error instanceof Error ? error.message : 'Failed to start interview', 
-        isLoading: false 
+      set({
+        error:
+          error instanceof Error ? error.message : "Failed to start interview",
+        isLoading: false,
       });
     }
   },
@@ -54,60 +46,52 @@ export const useInterviewStore = create<InterviewState>((set, get) => ({
 
     set({ isLoading: true, error: null });
     try {
-      // In a real app, this would make a fetch request to your API
-      const response = await fetch(`${API_URL}/interviews/${currentSession.id}/end`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        },
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Failed to end interview');
-      }
-
-      const updatedSession = await response.json();
-      set(state => ({
+      const updatedSession = await LocalDataService.endInterview(
+        currentSession.id
+      );
+      set((state) => ({
         currentSession: null,
         sessions: [updatedSession, ...state.sessions],
         isLoading: false,
       }));
     } catch (error) {
-      set({ 
-        error: error instanceof Error ? error.message : 'Failed to end interview', 
-        isLoading: false 
+      set({
+        error:
+          error instanceof Error ? error.message : "Failed to end interview",
+        isLoading: false,
       });
     }
   },
 
   updateMetrics: (metrics: Partial<InterviewMetrics>) => {
-    set(state => ({
-      currentSession: state.currentSession 
-        ? { 
-            ...state.currentSession, 
-            metrics: { ...(state.currentSession.metrics || {}), ...metrics } as InterviewMetrics 
+    set((state) => ({
+      currentSession: state.currentSession
+        ? {
+            ...state.currentSession,
+            metrics: {
+              ...(state.currentSession.metrics || {}),
+              ...metrics,
+            } as InterviewMetrics,
           }
-        : null
+        : null,
     }));
   },
 
   addEmotionDataPoint: (dataPoint: EmotionDataPoint) => {
-    set(state => {
+    set((state) => {
       if (!state.currentSession) return state;
-      
+
       const currentMetrics = state.currentSession.metrics || {};
       const emotionTimeline = currentMetrics.emotionTimeline || [];
-      
+
       return {
         currentSession: {
           ...state.currentSession,
           metrics: {
             ...currentMetrics,
-            emotionTimeline: [...emotionTimeline, dataPoint]
-          }
-        }
+            emotionTimeline: [...emotionTimeline, dataPoint],
+          },
+        },
       };
     });
   },
@@ -115,24 +99,20 @@ export const useInterviewStore = create<InterviewState>((set, get) => ({
   fetchSessions: async () => {
     set({ isLoading: true, error: null });
     try {
-      // In a real app, this would make a fetch request to your API
-      const response = await fetch(`${API_URL}/interviews`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        },
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Failed to fetch interview sessions');
+      const { user } = useAuthStore.getState();
+      if (!user) {
+        throw new Error("User not authenticated");
       }
 
-      const sessions = await response.json();
+      const sessions = await LocalDataService.getInterviews(user.id);
       set({ sessions, isLoading: false });
     } catch (error) {
-      set({ 
-        error: error instanceof Error ? error.message : 'Failed to fetch interview sessions', 
-        isLoading: false 
+      set({
+        error:
+          error instanceof Error
+            ? error.message
+            : "Failed to fetch interview sessions",
+        isLoading: false,
       });
     }
   },

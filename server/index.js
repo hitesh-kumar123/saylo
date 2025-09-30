@@ -9,9 +9,27 @@ dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3001;
+const FRONTEND_ORIGIN = process.env.FRONTEND_ORIGIN || "*";
 
 // Middleware
-app.use(cors());
+// CORS configuration for separated frontend/backend deployments
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      // Allow non-browser requests or same-origin without Origin header
+      if (!origin) return callback(null, true);
+
+      // Support comma-separated list of origins
+      const allowedOrigins = FRONTEND_ORIGIN.split(",").map((o) => o.trim());
+      if (FRONTEND_ORIGIN === "*" || allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+
+      return callback(new Error("Not allowed by CORS"));
+    },
+    credentials: true,
+  })
+);
 app.use(express.json());
 
 // Mock database
@@ -39,6 +57,10 @@ const authenticateToken = (req, res, next) => {
 };
 
 // Auth routes
+app.get("/healthz", (_req, res) => {
+  res.status(200).json({ status: "ok" });
+});
+
 app.post("/api/auth/register", (req, res) => {
   const { name, email, password } = req.body;
 

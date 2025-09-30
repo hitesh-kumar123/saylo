@@ -3,7 +3,6 @@ import { useForm } from "react-hook-form";
 import { Button } from "../ui/Button";
 import { useAuthStore } from "../../store/authStore";
 import { motion } from "framer-motion";
-import { API_URL } from "../../config";
 
 interface LoginFormProps {
   onSuccess?: () => void;
@@ -27,23 +26,9 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
     "checking" | "online" | "offline"
   >("checking");
 
-  // Check server status
+  // Since we're using local storage, server is always "online"
   useEffect(() => {
-    const checkServerStatus = async () => {
-      try {
-        const response = await fetch(`${API_URL}/auth/status`, {
-          method: "HEAD",
-          // Short timeout to quickly determine if server is available
-          signal: AbortSignal.timeout(2000),
-        });
-        setServerStatus("online");
-      } catch (error) {
-        console.error("Server status check failed:", error);
-        setServerStatus("offline");
-      }
-    };
-
-    checkServerStatus();
+    setServerStatus("online");
   }, []);
 
   // If already authenticated, call onSuccess

@@ -1,8 +1,16 @@
 // PDF parsing service using PDF.js for client-side resume parsing
-import * as pdfjsLib from "pdfjs-dist";
+import {
+  GlobalWorkerOptions,
+  getDocument,
+} from "pdfjs-dist";
+import type {
+  TextItem,
+  TextMarkedContent,
+} from "pdfjs-dist/types/src/display/api";
+import pdfWorkerSrc from "pdfjs-dist/build/pdf.worker.min.mjs?url";
 
-// Configure PDF.js worker
-pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
+// Configure PDF.js worker to use the bundled worker from pdfjs-dist
+GlobalWorkerOptions.workerSrc = pdfWorkerSrc;
 
 export interface ParsedResumeData {
   skills: string[];
@@ -49,7 +57,7 @@ export class PDFParserService {
   async parseResume(file: File): Promise<ParsedResumeData> {
     try {
       const arrayBuffer = await file.arrayBuffer();
-      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+      const pdf = await getDocument({ data: arrayBuffer }).promise;
 
       let fullText = "";
 
@@ -58,7 +66,7 @@ export class PDFParserService {
         const page = await pdf.getPage(pageNum);
         const textContent = await page.getTextContent();
         const pageText = textContent.items
-          .map((item: any) => item.str)
+          .map((item) => (isTextItem(item) ? item.str : ""))
           .join(" ")
           .replace(/\s+/g, " ")
           .trim();
@@ -69,17 +77,30 @@ export class PDFParserService {
       return this.parseResumeText(fullText);
     } catch (error) {
       console.error("Error parsing PDF:", error);
-      throw new Error("Failed to parse PDF file");
+      if (error instanceof Error) {
+        const message = error.message.toLowerCase();
+
+        if (message.includes("password")) {
+          throw new Error(
+            "Failed to parse PDF: encrypted or password-protected files are not supported yet."
+          );
+        }
+
+        if (message.includes("worker") || message.includes("loading")) {
+          throw new Error(
+            "Failed to initialise the PDF parser worker. Please refresh the page and try again."
+          );
+        }
+      }
+
+      throw new Error(
+        "Failed to parse PDF file. Please make sure you are uploading a standard, unencrypted PDF."
+      );
     }
   }
 
   // Parse resume text and extract structured data
   private parseResumeText(text: string): ParsedResumeData {
-    const lines = text
-      .split("\n")
-      .map((line) => line.trim())
-      .filter((line) => line.length > 0);
-
     return {
       skills: this.extractSkills(text),
       experience: this.extractExperience(text),
@@ -442,3 +463,7 @@ export class PDFParserService {
 
 // Export singleton instance
 export const pdfParserService = PDFParserService.getInstance();
+
+function isTextItem(item: TextItem | TextMarkedContent): item is TextItem {
+  return "str" in item;
+}

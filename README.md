@@ -2,14 +2,14 @@
 
 SayLO is an open-source interview preparation platform that focuses on privacy and local-first AI processing. It provides simulated interviews, resume parsing, video interviews (via Jitsi), and performance analytics.
 
-This repository contains a Vite + React frontend (TypeScript) and a small Node/Express backend for demo/persistence.
+This repository contains a Vite + React frontend (TypeScript) and a small Node/Express backend for demo/persistence, now maintained as separate apps within a single workspace.
 
 ## Quick links
 
-- Frontend entry: `src/main.tsx`
-- Backend entry: `server/index.js`
-- Dev server: `npm run dev` (frontend)
-- Backend server: `npm run server` or `npm start`
+- Frontend entry: `frontend/src/main.tsx`
+- Backend entry: `backend/src/index.js`
+- Frontend dev server: `npm run dev` or `npm run frontend:dev`
+- Backend server: `npm run server` or `npm run backend:start`
 
 ## Table of contents
 
@@ -45,7 +45,7 @@ git clone https://github.com/hitesh-kumar123/saylo.git
 cd saylo
 ```
 
-Install
+Install (installs both workspaces)
 
 ```powershell
 npm install
@@ -70,8 +70,8 @@ Open http://localhost:5173 in your browser. The frontend expects the backend API
 Production build
 
 ```powershell
-npm run build
-npm run preview
+npm run build        # builds frontend
+npm run preview      # previews frontend build
 ```
 
 Notes
@@ -79,9 +79,9 @@ Notes
 
 ## 3. Environment variables
 
-Create a backend `.env` at project root and a frontend `.env.local` in the root for Vite variables.
+Create a backend `.env` at `backend/.env` and a frontend `.env.local` at `frontend/.env.local` for Vite variables.
 
-Backend (`.env`)
+Backend (`backend/.env`)
 
 ```
 PORT=3001
@@ -89,7 +89,7 @@ JWT_SECRET=your_jwt_secret_here
 FRONTEND_ORIGIN=http://localhost:5173
 ```
 
-Frontend (`.env.local`)
+Frontend (`frontend/.env.local`)
 
 ```
 VITE_API_URL=http://localhost:3001/api
@@ -102,30 +102,29 @@ Tip: Vite only exposes variables prefixed with `VITE_` to client code.
 
 ## 4. Testing
 
-Run tests with Vitest (see `package.json` scripts):
+Run tests with Vitest (frontend workspace):
 
 ```powershell
-npm test          # or `npm run test:run` to run once
-npm run test:ui   # run with Vitest UI
+npm test              # or `npm run test:run` to run once
+npm run test:ui       # run with Vitest UI
 npm run test:coverage
 ```
 
-Test files live under `test/` and use Testing Library / Vitest.
+Test files live under `frontend/test/` and use Testing Library / Vitest.
 
 ## 5. Project structure (high level)
 
 ```
-server/                 # small Node/Express demo API
-src/                    # frontend source (React + TypeScript)
-  components/
-  pages/
-  services/
-  store/
-  types/
-test/                   # unit & integration tests
+backend/                # express API (Node.js)
+  src/
+frontend/               # Vite + React application
+  src/
+  test/
+  vite.config.ts
+docs/                   # documentation
 ```
 
-Refer to `src/` and `server/` for component and API details.
+Refer to `frontend/` and `backend/` for component and API details.
 
 ## 6. Ollama (optional) — local LLM
 

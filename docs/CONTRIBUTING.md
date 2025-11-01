@@ -22,7 +22,7 @@ npm run lint
 
 4. Write tests for new behavior
 
-- Add unit tests under `test/` using Vitest and Testing Library.
+- Add unit tests under `frontend/test/` using Vitest and Testing Library.
 
 5. Update documentation
 

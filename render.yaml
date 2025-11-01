@@ -3,8 +3,8 @@ services:
     name: saylo-backend
     env: node
     plan: free
-    buildCommand: npm install --omit=dev
-    startCommand: npm start
+    buildCommand: cd backend && npm install --omit=dev
+    startCommand: cd backend && npm start
     autoDeploy: true
     envVars:
       - key: NODE_VERSION

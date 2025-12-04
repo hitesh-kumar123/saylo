@@ -1,6 +1,7 @@
 services:
   - type: web
     name: saylo-backend
+    rootDir: backend
     env: node
     plan: free
     buildCommand: npm install --omit=dev

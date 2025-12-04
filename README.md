@@ -2,14 +2,15 @@
 
 SayLO is an open-source interview preparation platform that focuses on privacy and local-first AI processing. It provides simulated interviews, resume parsing, video interviews (via Jitsi), and performance analytics.
 
-This repository contains a Vite + React frontend (TypeScript) and a small Node/Express backend for demo/persistence.
+Clean, modular architecture with separated frontend and backend.
 
-## Quick links
+## Quick Links
 
-- Frontend entry: `src/main.tsx`
-- Backend entry: `server/index.js`
-- Dev server: `npm run dev` (frontend)
-- Backend server: `npm run server` or `npm start`
+- **Frontend**: `frontend/src/main.tsx`
+- **Backend**: `backend/index.js`
+- **Frontend Dev**: `npm run dev`
+- **Backend Dev**: `npm run dev:backend`
+- **Both**: `npm run dev:all`
 
 ## Table of contents
 
@@ -35,6 +36,7 @@ This repository contains a Vite + React frontend (TypeScript) and a small Node/E
 ## 2. Getting started
 
 Prerequisites
+
 - Node.js v18+ (Node 20 recommended)
 - npm (or pnpm/yarn)
 
@@ -53,19 +55,25 @@ npm install
 
 Run locally (two terminals)
 
-- Terminal A — start backend (API/demo server):
+- Terminal A — start backend:
 
 ```powershell
-npm run server
+npm run dev:backend
 ```
 
-- Terminal B — start frontend dev server:
+- Terminal B — start frontend:
 
 ```powershell
 npm run dev
 ```
 
-Open http://localhost:5173 in your browser. The frontend expects the backend API at `VITE_API_URL` (default: `http://localhost:3001/api`).
+Or run both in one terminal:
+
+```powershell
+npm run dev:all
+```
+
+Open http://localhost:5173 in browser. Backend API runs at `http://localhost:3001/api`.
 
 Production build
 
@@ -75,6 +83,7 @@ npm run preview
 ```
 
 Notes
+
 - The repository doesn't run a single combined process by default. Running frontend and backend in separate shells is the simplest local workflow.
 
 ## 3. Environment variables
@@ -102,30 +111,43 @@ Tip: Vite only exposes variables prefixed with `VITE_` to client code.
 
 ## 4. Testing
 
-Run tests with Vitest (see `package.json` scripts):
+Frontend tests with Vitest:
 
 ```powershell
-npm test          # or `npm run test:run` to run once
-npm run test:ui   # run with Vitest UI
-npm run test:coverage
+npm test              # Watch mode
+npm run test:run      # Single run
+npm run test:ui       # UI dashboard
+npm run test:coverage # Coverage report
 ```
 
-Test files live under `test/` and use Testing Library / Vitest.
+Test files: `frontend/test/`
 
-## 5. Project structure (high level)
+## Project Structure
 
 ```
-server/                 # small Node/Express demo API
-src/                    # frontend source (React + TypeScript)
-  components/
-  pages/
-  services/
-  store/
-  types/
-test/                   # unit & integration tests
+saylo/
+├── frontend/                  # React + TypeScript frontend
+│   ├── src/
+│   │   ├── components/        # Reusable UI components
+│   │   ├── pages/             # Page components
+│   │   ├── services/          # API & utility services
+│   │   ├── store/             # Zustand state management
+│   │   └── types/             # TypeScript types
+│   └── package.json
+│
+├── backend/                   # Node/Express API
+│   ├── index.js               # Main entry point
+│   ├── config/                # Configuration files
+│   ├── middleware/            # Express middleware
+│   ├── routes/                # API endpoints
+│   ├── services/              # Business logic
+│   ├── utils/                 # Utilities & validators
+│   └── db/                    # Database (mock, replace with real)
+│
+├── docs/                      # Documentation
+├── test/                      # Frontend tests
+└── package.json               # Root package config
 ```
-
-Refer to `src/` and `server/` for component and API details.
 
 ## 6. Ollama (optional) — local LLM
 

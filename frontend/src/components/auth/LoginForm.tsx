@@ -54,14 +54,16 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className="bg-white p-8 rounded-lg shadow-md max-w-md w-full"
+      className="glass p-8 rounded-2xl border border-white/10 shadow-2xl max-w-md w-full relative overflow-hidden"
     >
-      <h2 className="text-2xl font-bold text-gray-900 mb-6">
+      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary-500 to-secondary-500" />
+      
+      <h2 className="text-2xl font-bold text-white mb-6">
         Login to your account
       </h2>
 
       {serverStatus === "offline" && (
-        <div className="bg-yellow-50 text-yellow-800 p-4 rounded-md mb-6">
+        <div className="bg-yellow-500/10 border border-yellow-500/20 text-yellow-200 p-4 rounded-lg mb-6 backdrop-blur-sm">
           <div className="flex">
             <div className="flex-shrink-0">
               <svg
@@ -86,7 +88,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
       )}
 
       {error && (
-        <div className="bg-red-50 text-red-800 p-4 rounded-md mb-6">
+        <div className="bg-red-500/10 border border-red-500/20 text-red-200 p-4 rounded-lg mb-6 backdrop-blur-sm">
           <div className="flex">
             <div className="flex-shrink-0">
               <svg
@@ -108,7 +110,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
               <div className="-mx-1.5 -my-1.5">
                 <button
                   onClick={clearError}
-                  className="inline-flex rounded-md p-1.5 text-red-500 hover:bg-red-100 focus:outline-none"
+                  className="inline-flex rounded-md p-1.5 text-red-400 hover:bg-red-500/20 focus:outline-none"
                 >
                   <span className="sr-only">Dismiss</span>
                   <svg
@@ -133,7 +135,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
         <div>
           <label
             htmlFor="email"
-            className="block text-sm font-medium text-gray-700"
+            className="block text-sm font-medium text-slate-300"
           >
             Email
           </label>
@@ -143,8 +145,9 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
               type="email"
               autoComplete="email"
               className={`appearance-none block w-full px-3 py-2 border ${
-                errors.email ? "border-red-300" : "border-gray-300"
-              } rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm`}
+                errors.email ? "border-red-500/50" : "border-white/10"
+              } rounded-lg bg-slate-900/50 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent sm:text-sm transition-all`}
+              placeholder="you@example.com"
               {...register("email", {
                 required: "Email is required",
                 pattern: {
@@ -154,7 +157,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
               })}
             />
             {errors.email && (
-              <p className="mt-2 text-sm text-red-600">
+              <p className="mt-2 text-sm text-red-400">
                 {errors.email.message}
               </p>
             )}
@@ -164,7 +167,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
         <div>
           <label
             htmlFor="password"
-            className="block text-sm font-medium text-gray-700"
+            className="block text-sm font-medium text-slate-300"
           >
             Password
           </label>
@@ -174,8 +177,9 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
               type="password"
               autoComplete="current-password"
               className={`appearance-none block w-full px-3 py-2 border ${
-                errors.password ? "border-red-300" : "border-gray-300"
-              } rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm`}
+                errors.password ? "border-red-500/50" : "border-white/10"
+              } rounded-lg bg-slate-900/50 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent sm:text-sm transition-all`}
+              placeholder="••••••••"
               {...register("password", {
                 required: "Password is required",
                 minLength: {
@@ -185,7 +189,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
               })}
             />
             {errors.password && (
-              <p className="mt-2 text-sm text-red-600">
+              <p className="mt-2 text-sm text-red-400">
                 {errors.password.message}
               </p>
             )}
@@ -198,11 +202,11 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
               id="remember-me"
               name="remember-me"
               type="checkbox"
-              className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+              className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded bg-slate-800 border-white/10"
             />
             <label
               htmlFor="remember-me"
-              className="ml-2 block text-sm text-gray-900"
+              className="ml-2 block text-sm text-slate-300"
             >
               Remember me
             </label>
@@ -211,7 +215,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
           <div className="text-sm">
             <a
               href="#"
-              className="font-medium text-primary-600 hover:text-primary-500"
+              className="font-medium text-primary-400 hover:text-primary-300"
             >
               Forgot your password?
             </a>
@@ -219,7 +223,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
         </div>
 
         <div>
-          <Button type="submit" fullWidth isLoading={isLoading}>
+          <Button type="submit" fullWidth isLoading={isLoading} className="shadow-lg shadow-primary-500/20">
             Sign in
           </Button>
         </div>

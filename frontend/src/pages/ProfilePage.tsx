@@ -1,148 +1,158 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useAuthStore } from "../store/authStore";
 import { User } from "../types";
 import { motion } from "framer-motion";
+import { ArrowLeft, Mail, User as UserIcon, Shield, BarChart2, Clock, Award, Settings, LogOut, Camera } from "lucide-react";
+import { Button } from "../components/ui/Button";
+import { PageLayout } from "../components/layout/PageLayout";
 
 export const ProfilePage: React.FC = () => {
-  const { user: storeUser, logout, token, isAuthenticated } = useAuthStore();
+  const { user: storeUser, logout, isAuthenticated } = useAuthStore();
   const [user, setUser] = useState<User | null>(storeUser);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Since we're using local storage now, just use the user from the store
     if (storeUser) {
       setUser(storeUser);
     } else if (!isAuthenticated) {
-      setError("User not authenticated");
+      navigate("/login");
     }
-  }, [storeUser, isAuthenticated]);
+  }, [storeUser, isAuthenticated, navigate]);
 
   const handleLogout = () => {
     logout();
     navigate("/login");
   };
 
-  if (!isAuthenticated) {
-    navigate("/login");
-    return null;
-  }
+  if (!user) return null;
+
+  // Mock stats
+  const stats = [
+    { label: "Interviews", value: "12", icon: <VideoIcon className="text-blue-400" size={20} /> },
+    { label: "Avg. Score", value: "85%", icon: <BarChart2 className="text-green-400" size={20} /> },
+    { label: "Practice Time", value: "4.5h", icon: <Clock className="text-purple-400" size={20} /> },
+    { label: "Streak", value: "3 Days", icon: <Award className="text-orange-400" size={20} /> },
+  ];
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12">
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3 }}
-          className="bg-white shadow rounded-lg overflow-hidden"
-        >
-          {isLoading ? (
-            <div className="p-8 flex justify-center items-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-600"></div>
-            </div>
-          ) : error ? (
-            <div className="p-8">
-              <div className="bg-red-50 text-red-800 p-4 rounded-md">
-                <div className="flex">
-                  <div className="flex-shrink-0">
-                    <svg
-                      className="h-5 w-5 text-red-400"
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                  </div>
-                  <div className="ml-3">
-                    <p className="text-sm font-medium">{error}</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          ) : user ? (
-            <>
-              <div className="bg-primary-700 px-4 py-5 sm:px-6">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-lg leading-6 font-medium text-white">
-                    User Profile
-                  </h3>
-                </div>
-              </div>
+    <PageLayout>
+      <div className="max-w-4xl mx-auto space-y-6">
+        {/* Header with Back Button */}
+        <div className="flex items-center gap-4 mb-8">
+          <Link to="/dashboard">
+            <Button variant="ghost" size="sm" className="text-slate-400 hover:text-white hover:bg-white/5">
+              <ArrowLeft size={20} className="mr-2" />
+              Back to Dashboard
+            </Button>
+          </Link>
+        </div>
 
-              <div className="border-t border-gray-200 px-4 py-5 sm:p-6">
-                <div className="flex items-center space-x-5 mb-8">
-                  <div className="flex-shrink-0">
-                    <div className="relative">
-                      <div className="h-24 w-24 rounded-full bg-gradient-to-r from-primary-400 to-secondary-500 flex items-center justify-center text-white text-3xl font-bold">
-                        {user.name
-                          .split(" ")
-                          .map((n) => n[0])
-                          .join("")
-                          .toUpperCase()}
-                      </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* Profile Card */}
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="md:col-span-1"
+          >
+            <div className="glass rounded-2xl p-6 border border-white/10 text-center relative overflow-hidden">
+              <div className="absolute top-0 left-0 w-full h-24 bg-gradient-to-r from-primary-600 to-secondary-600 opacity-20" />
+              
+              <div className="relative z-10">
+                <div className="w-24 h-24 mx-auto rounded-full bg-gradient-to-br from-primary-500 to-secondary-500 p-1 mb-4 shadow-xl shadow-primary-500/20">
+                  <div className="w-full h-full rounded-full bg-slate-900 flex items-center justify-center text-3xl font-bold text-white relative group cursor-pointer">
+                    {user.name.charAt(0).toUpperCase()}
+                    <div className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Camera size={20} className="text-white" />
                     </div>
                   </div>
-                  <div>
-                    <h1 className="text-2xl font-bold text-gray-900">
-                      {user.name}
-                    </h1>
-                    <p className="text-sm font-medium text-gray-500">
-                      Member since{" "}
-                      {new Date().toLocaleDateString("en-US", {
-                        year: "numeric",
-                        month: "long",
-                      })}
-                    </p>
-                  </div>
+                </div>
+                
+                <h2 className="text-xl font-bold text-white mb-1">{user.name}</h2>
+                <p className="text-sm text-slate-400 mb-6">{user.email}</p>
+                
+                <div className="flex justify-center gap-2 mb-6">
+                  <span className="px-3 py-1 rounded-full bg-primary-500/10 border border-primary-500/20 text-xs text-primary-300 font-medium flex items-center gap-1">
+                    <Shield size={12} />
+                    Free Plan
+                  </span>
                 </div>
 
-                <dl className="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
-                  <div className="sm:col-span-1">
-                    <dt className="text-sm font-medium text-gray-500">Email</dt>
-                    <dd className="mt-1 text-sm text-gray-900">{user.email}</dd>
-                  </div>
-
-                  <div className="sm:col-span-1">
-                    <dt className="text-sm font-medium text-gray-500">Role</dt>
-                    <dd className="mt-1 text-sm text-gray-900">
-                      <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                        User
-                      </span>
-                    </dd>
-                  </div>
-
-                  <div className="sm:col-span-2">
-                    <dt className="text-sm font-medium text-gray-500">About</dt>
-                    <dd className="mt-1 text-sm text-gray-900">
-                      No additional information provided.
-                    </dd>
-                  </div>
-                </dl>
-              </div>
-
-              <div className="bg-gray-50 px-4 py-5 sm:px-6">
-                <button
+                <Button 
+                  variant="outline" 
+                  className="w-full border-red-500/30 text-red-400 hover:bg-red-500/10 hover:text-red-300"
                   onClick={handleLogout}
-                  className="w-full inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
                 >
-                  Logout
-                </button>
+                  <LogOut size={16} className="mr-2" />
+                  Sign Out
+                </Button>
               </div>
-            </>
-          ) : (
-            <div className="p-8 text-center text-gray-500">
-              No user information available
             </div>
-          )}
-        </motion.div>
+          </motion.div>
+
+          {/* Details & Stats */}
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="md:col-span-2 space-y-6"
+          >
+            {/* Stats Grid */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              {stats.map((stat, index) => (
+                <div key={index} className="glass p-4 rounded-xl border border-white/5 bg-slate-900/50">
+                  <div className="mb-2 bg-slate-800/50 w-8 h-8 rounded-lg flex items-center justify-center">
+                    {stat.icon}
+                  </div>
+                  <div className="text-2xl font-bold text-white mb-1">{stat.value}</div>
+                  <div className="text-xs text-slate-400">{stat.label}</div>
+                </div>
+              ))}
+            </div>
+
+            {/* Account Settings Placeholder */}
+            <div className="glass rounded-2xl p-6 border border-white/10">
+              <h3 className="text-lg font-semibold text-white mb-6 flex items-center gap-2">
+                <Settings size={20} className="text-slate-400" />
+                Account Settings
+              </h3>
+              
+              <div className="space-y-4">
+                <div className="group p-4 rounded-xl bg-white/5 border border-white/5 hover:border-primary-500/30 transition-colors cursor-pointer flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 group-hover:text-primary-400 transition-colors">
+                      <UserIcon size={20} />
+                    </div>
+                    <div>
+                      <div className="text-sm font-medium text-white">Personal Information</div>
+                      <div className="text-xs text-slate-400">Update your name and profile details</div>
+                    </div>
+                  </div>
+                  <div className="text-slate-500 group-hover:text-white transition-colors">→</div>
+                </div>
+
+                <div className="group p-4 rounded-xl bg-white/5 border border-white/5 hover:border-primary-500/30 transition-colors cursor-pointer flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 group-hover:text-primary-400 transition-colors">
+                      <Mail size={20} />
+                    </div>
+                    <div>
+                      <div className="text-sm font-medium text-white">Email Preferences</div>
+                      <div className="text-xs text-slate-400">Manage your notifications</div>
+                    </div>
+                  </div>
+                  <div className="text-slate-500 group-hover:text-white transition-colors">→</div>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        </div>
       </div>
-    </div>
+    </PageLayout>
   );
 };
+
+// Helper component for the stats icon since Video is imported from lucide-react but used as VideoIcon to avoid conflict if needed, 
+// though here I can just import Video directly.
+import { Video as VideoIcon } from "lucide-react";
+

@@ -13,20 +13,15 @@ export const RegisterPage: React.FC = () => {
   return (
     <PageLayout>
       <div className="flex flex-col items-center justify-center py-12">
-        <div className="sm:mx-auto sm:w-full sm:max-w-md">
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            Create a new account
-          </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
+        <div className="w-full max-w-md">
+          <RegisterForm onSuccess={handleRegisterSuccess} />
+          
+          <p className="mt-6 text-center text-sm text-slate-400">
             Already have an account?{' '}
-            <Link to="/login" className="font-medium text-primary-600 hover:text-primary-500">
+            <Link to="/login" className="font-medium text-primary-400 hover:text-primary-300 transition-colors">
               Sign in
             </Link>
           </p>
-        </div>
-
-        <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-          <RegisterForm onSuccess={handleRegisterSuccess} />
         </div>
       </div>
     </PageLayout>

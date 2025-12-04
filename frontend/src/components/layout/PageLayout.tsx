@@ -16,17 +16,23 @@ export const PageLayout: React.FC<PageLayoutProps> = ({
   noHeader = false,
 }) => {
   return (
-    <div className="flex flex-col min-h-screen bg-gray-50">
+    <div className="flex flex-col min-h-screen bg-slate-950 text-slate-100">
       {!noHeader && <Header />}
-      <main className="flex-grow">
+      <main className={`flex-grow relative ${!noHeader ? 'pt-16' : ''}`}>
+        {/* Background Gradients */}
+        <div className="absolute top-0 left-0 w-full h-full overflow-hidden -z-10 pointer-events-none">
+          <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-primary-900/20 blur-[100px]" />
+          <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-secondary-900/20 blur-[100px]" />
+        </div>
+
         {(title || subtitle) && (
-          <div className="bg-white shadow-sm">
-            <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+          <div className="border-b border-white/5 bg-slate-900/50 backdrop-blur-sm">
+            <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
               {title && (
                 <motion.h1
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="text-2xl font-bold text-gray-900"
+                  className="text-3xl font-bold text-white tracking-tight"
                 >
                   {title}
                 </motion.h1>
@@ -36,7 +42,7 @@ export const PageLayout: React.FC<PageLayoutProps> = ({
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.1 }}
-                  className="mt-1 text-sm text-gray-600"
+                  className="mt-2 text-lg text-slate-400"
                 >
                   {subtitle}
                 </motion.p>
@@ -48,14 +54,14 @@ export const PageLayout: React.FC<PageLayoutProps> = ({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.2 }}
-          className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8"
+          className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8"
         >
           {children}
         </motion.div>
       </main>
-      <footer className="bg-white border-t border-gray-200">
-        <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-          <p className="text-center text-sm text-gray-500">
+      <footer className="border-t border-white/10 bg-slate-950">
+        <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+          <p className="text-center text-sm text-slate-500">
             &copy; {new Date().getFullYear()} saylo.hire. All rights reserved.
           </p>
         </div>

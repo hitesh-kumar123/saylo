@@ -1,0 +1,156 @@
+{
+  "behavioral": [
+    {
+      "id": "b1",
+      "question": "Tell me about a time when you had to work under pressure.",
+      "category": "stress_management",
+      "difficulty": "medium",
+      "followUp": "How did you prioritize your tasks?",
+      "evaluationCriteria": [
+        "problem_solving",
+        "time_management",
+        "communication"
+      ]
+    },
+    {
+      "id": "b2",
+      "question": "Describe a situation where you had to resolve a conflict with a team member.",
+      "category": "teamwork",
+      "difficulty": "medium",
+      "followUp": "What was the outcome?",
+      "evaluationCriteria": [
+        "conflict_resolution",
+        "communication",
+        "leadership"
+      ]
+    },
+    {
+      "id": "b3",
+      "question": "Give me an example of a time you failed and how you handled it.",
+      "category": "resilience",
+      "difficulty": "hard",
+      "followUp": "What did you learn from this experience?",
+      "evaluationCriteria": ["self_awareness", "learning_ability", "resilience"]
+    },
+    {
+      "id": "b4",
+      "question": "Tell me about a time you had to learn something new quickly.",
+      "category": "learning",
+      "difficulty": "medium",
+      "followUp": "How did you approach the learning process?",
+      "evaluationCriteria": [
+        "learning_ability",
+        "adaptability",
+        "problem_solving"
+      ]
+    },
+    {
+      "id": "b5",
+      "question": "Describe a project where you had to work with people from different departments.",
+      "category": "collaboration",
+      "difficulty": "medium",
+      "followUp": "What challenges did you face?",
+      "evaluationCriteria": ["collaboration", "communication", "leadership"]
+    }
+  ],
+  "technical": [
+    {
+      "id": "t1",
+      "question": "Explain the difference between let, const, and var in JavaScript.",
+      "category": "javascript",
+      "difficulty": "easy",
+      "followUp": "Can you give examples of when to use each?",
+      "evaluationCriteria": [
+        "technical_knowledge",
+        "explanation_clarity",
+        "examples"
+      ]
+    },
+    {
+      "id": "t2",
+      "question": "How would you optimize a slow-loading website?",
+      "category": "performance",
+      "difficulty": "hard",
+      "followUp": "What tools would you use to measure performance?",
+      "evaluationCriteria": [
+        "technical_knowledge",
+        "problem_solving",
+        "tools_awareness"
+      ]
+    },
+    {
+      "id": "t3",
+      "question": "Explain the concept of closures in JavaScript.",
+      "category": "javascript",
+      "difficulty": "hard",
+      "followUp": "Can you provide a practical example?",
+      "evaluationCriteria": [
+        "technical_knowledge",
+        "explanation_clarity",
+        "practical_examples"
+      ]
+    },
+    {
+      "id": "t4",
+      "question": "What is the difference between SQL and NoSQL databases?",
+      "category": "databases",
+      "difficulty": "medium",
+      "followUp": "When would you choose one over the other?",
+      "evaluationCriteria": [
+        "technical_knowledge",
+        "decision_making",
+        "trade_offs"
+      ]
+    },
+    {
+      "id": "t5",
+      "question": "How do you handle errors in asynchronous JavaScript code?",
+      "category": "javascript",
+      "difficulty": "medium",
+      "followUp": "What are the different approaches?",
+      "evaluationCriteria": [
+        "technical_knowledge",
+        "error_handling",
+        "best_practices"
+      ]
+    }
+  ],
+  "situational": [
+    {
+      "id": "s1",
+      "question": "How would you handle a situation where your manager gives you conflicting priorities?",
+      "category": "prioritization",
+      "difficulty": "medium",
+      "followUp": "How would you communicate this to your manager?",
+      "evaluationCriteria": [
+        "problem_solving",
+        "communication",
+        "prioritization"
+      ]
+    },
+    {
+      "id": "s2",
+      "question": "What would you do if you discovered a critical bug in production?",
+      "category": "crisis_management",
+      "difficulty": "hard",
+      "followUp": "How would you prevent this in the future?",
+      "evaluationCriteria": [
+        "crisis_management",
+        "problem_solving",
+        "prevention"
+      ]
+    },
+    {
+      "id": "s3",
+      "question": "How would you approach learning a new technology that's required for a project?",
+      "category": "learning",
+      "difficulty": "easy",
+      "followUp": "What resources would you use?",
+      "evaluationCriteria": [
+        "learning_approach",
+        "resource_utilization",
+        "planning"
+      ]
+    }
+  ]
+}

@@ -3,7 +3,7 @@ import { PageLayout } from "../components/layout/PageLayout";
 import { ResumeUploader } from "../components/resume/ResumeUploader";
 import { ResumePreview } from "../components/resume/ResumePreview";
 import { Card } from "../components/ui/Card";
-import { FileText, Check, AlertTriangle } from "lucide-react";
+import { FileText } from "lucide-react";
 import { useResumeStore } from "../store/resumeStore";
 import { motion } from "framer-motion";
 
@@ -33,17 +33,17 @@ export const ResumePage: React.FC = () => {
             <Card title="Your Resumes">
               {resumes.length === 0 ? (
                 <div className="text-center py-6">
-                  <p className="text-gray-500">No resumes uploaded yet</p>
+                  <p className="text-slate-500 dark:text-dark-400">No resumes uploaded yet</p>
                 </div>
               ) : (
                 <div className="space-y-3">
                   {resumes.map((resume) => (
                     <div
                       key={resume.id}
-                      className={`flex items-center p-3 rounded-md cursor-pointer hover:bg-gray-50 ${
+                      className={`flex items-center p-3 rounded-md cursor-pointer transition-colors ${
                         currentResume?.id === resume.id
-                          ? "bg-primary-50 border border-primary-200"
-                          : ""
+                          ? "bg-primary-50 dark:bg-primary-900/20 border border-primary-200 dark:border-primary-700"
+                          : "hover:bg-gray-50 dark:hover:bg-dark-800 border border-transparent"
                       }`}
                       onClick={() =>
                         useResumeStore.getState().selectResume(resume.id)
@@ -52,15 +52,15 @@ export const ResumePage: React.FC = () => {
                       <FileText
                         className={`h-5 w-5 mr-3 ${
                           currentResume?.id === resume.id
-                            ? "text-primary-600"
-                            : "text-gray-400"
+                            ? "text-primary-600 dark:text-primary-400"
+                            : "text-slate-400 dark:text-dark-400"
                         }`}
                       />
                       <div>
-                        <p className="text-sm font-medium text-gray-900">
+                        <p className="text-sm font-medium text-slate-900 dark:text-white">
                           {resume.fileName}
                         </p>
-                        <p className="text-xs text-gray-500">
+                        <p className="text-xs text-slate-500 dark:text-dark-400">
                           {new Date(resume.uploadDate).toLocaleDateString()}
                         </p>
                       </div>
@@ -77,7 +77,7 @@ export const ResumePage: React.FC = () => {
             transition={{ duration: 0.3, delay: 0.3 }}
           >
             <Card title="Resume Tips">
-              <div className="space-y-4 text-sm text-gray-600">
+              <div className="space-y-4 text-sm text-slate-600 dark:text-dark-300">
                 <p>
                   A strong resume increases your chances of landing interviews.
                   Here are some tips:

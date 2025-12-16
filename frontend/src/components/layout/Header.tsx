@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Menu, X, User, LogOut } from "lucide-react";
 import { Button } from "../ui/Button";
 import { useAuthStore } from "../../store/authStore";
+import { ThemeToggle } from "../ThemeToggle";
 import { motion } from "framer-motion";
 
 export const Header: React.FC = () => {
@@ -43,7 +44,7 @@ export const Header: React.FC = () => {
     <header 
       className={`fixed top-0 w-full z-50 transition-all duration-300 ${
         isScrolled 
-          ? 'bg-slate-950/90 backdrop-blur-xl border-b border-white/10 shadow-lg' 
+          ? 'bg-white/80 dark:bg-slate-950/90 backdrop-blur-xl border-b border-slate-200 dark:border-white/10 shadow-lg' 
           : 'bg-transparent border-b border-transparent'
       }`}
     >
@@ -54,9 +55,9 @@ export const Header: React.FC = () => {
               <a
                 href="#"
                 onClick={handleLogoClick}
-                className="text-white font-bold text-xl tracking-tight"
+                className="text-slate-900 dark:text-white font-bold text-xl tracking-tight"
               >
-                saylo<span className="text-primary-400">.hire</span>
+                saylo<span className="text-primary-600 dark:text-primary-400">.hire</span>
               </a>
             </div>
             <nav className="hidden sm:ml-6 sm:flex sm:space-x-8">
@@ -66,8 +67,8 @@ export const Header: React.FC = () => {
                     to="/dashboard"
                     className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors ${
                       isActive("/dashboard")
-                        ? "border-primary-500 text-white"
-                        : "border-transparent text-slate-400 hover:border-slate-300 hover:text-slate-200"
+                        ? "border-primary-500 text-slate-900 dark:text-white"
+                        : "border-transparent text-slate-500 dark:text-slate-400 hover:border-slate-300 hover:text-slate-700 dark:hover:text-slate-200"
                     }`}
                   >
                     Dashboard
@@ -76,8 +77,8 @@ export const Header: React.FC = () => {
                     to="/interview"
                     className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors ${
                       isActive("/interview")
-                        ? "border-primary-500 text-white"
-                        : "border-transparent text-slate-400 hover:border-slate-300 hover:text-slate-200"
+                        ? "border-primary-500 text-slate-900 dark:text-white"
+                        : "border-transparent text-slate-500 dark:text-slate-400 hover:border-slate-300 hover:text-slate-700 dark:hover:text-slate-200"
                     }`}
                   >
                     Interview
@@ -86,8 +87,8 @@ export const Header: React.FC = () => {
                     to="/career"
                     className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors ${
                       isActive("/career")
-                        ? "border-primary-500 text-white"
-                        : "border-transparent text-slate-400 hover:border-slate-300 hover:text-slate-200"
+                        ? "border-primary-500 text-slate-900 dark:text-white"
+                        : "border-transparent text-slate-500 dark:text-slate-400 hover:border-slate-300 hover:text-slate-700 dark:hover:text-slate-200"
                     }`}
                   >
                     Career
@@ -96,8 +97,8 @@ export const Header: React.FC = () => {
                     to="/resume"
                     className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors ${
                       isActive("/resume")
-                        ? "border-primary-500 text-white"
-                        : "border-transparent text-slate-400 hover:border-slate-300 hover:text-slate-200"
+                        ? "border-primary-500 text-slate-900 dark:text-white"
+                        : "border-transparent text-slate-500 dark:text-slate-400 hover:border-slate-300 hover:text-slate-700 dark:hover:text-slate-200"
                     }`}
                   >
                     Resume
@@ -109,7 +110,8 @@ export const Header: React.FC = () => {
           <div className="hidden sm:ml-6 sm:flex sm:items-center">
             {isAuthenticated ? (
               <div className="flex items-center space-x-4">
-                <div className="relative">
+                <div className="flex items-center gap-4">
+                  <ThemeToggle />
                   <Link to="/profile" className="flex items-center group">
                     <span className="text-sm font-medium text-slate-300 mr-2 group-hover:text-white transition-colors">
                       {user?.name}
@@ -136,6 +138,9 @@ export const Header: React.FC = () => {
                     Login
                   </Button>
                 </Link>
+                <div className="mx-2">
+                  <ThemeToggle />
+                </div>
                 <Link to="/register">
                   <Button size="sm" className="shadow-lg shadow-primary-500/20">Sign Up</Button>
                 </Link>
@@ -148,7 +153,7 @@ export const Header: React.FC = () => {
               className="inline-flex items-center justify-center p-2 rounded-md text-slate-400 hover:text-white hover:bg-white/10 focus:outline-none"
             >
               <span className="sr-only">Open main menu</span>
-              {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
+              {isMenuOpen ? <X size={24} className="text-slate-900 dark:text-slate-100" /> : <Menu size={24} className="text-slate-900 dark:text-slate-100" />}
             </button>
           </div>
         </div>
@@ -161,7 +166,7 @@ export const Header: React.FC = () => {
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -10 }}
           transition={{ duration: 0.2 }}
-          className="sm:hidden bg-slate-900/95 backdrop-blur-xl border-b border-white/10"
+          className="sm:hidden bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border-b border-slate-200 dark:border-white/10"
         >
           <div className="pt-2 pb-3 space-y-1">
             {isAuthenticated && (
@@ -256,6 +261,9 @@ export const Header: React.FC = () => {
                 >
                   Sign Up
                 </Link>
+                <div className="px-4 py-2">
+                   <ThemeToggle />
+                </div>
               </div>
             )}
           </div>

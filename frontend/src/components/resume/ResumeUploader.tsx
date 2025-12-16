@@ -70,15 +70,15 @@ export const ResumeUploader: React.FC = () => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className="bg-white p-6 rounded-lg shadow-md"
+      className="bg-white dark:bg-dark-900 p-6 rounded-lg shadow-md border border-gray-100 dark:border-dark-700"
     >
-      <h3 className="text-lg font-semibold text-gray-900 mb-4">
+      <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">
         Upload Your Resume
       </h3>
 
       {/* Error Messages */}
       {(error || parsingError) && (
-        <div className="bg-red-50 text-red-800 p-4 rounded-md mb-4 flex items-center">
+        <div className="bg-red-50 dark:bg-red-900/20 text-red-800 dark:text-red-300 p-4 rounded-md mb-4 flex items-center border border-red-100 dark:border-red-900/30">
           <AlertCircle className="h-5 w-5 mr-2" />
           <p className="text-sm">{error || parsingError}</p>
         </div>
@@ -86,7 +86,7 @@ export const ResumeUploader: React.FC = () => {
 
       {/* Success Message */}
       {parsingStatus === "success" && (
-        <div className="bg-green-50 text-green-800 p-4 rounded-md mb-4 flex items-center">
+        <div className="bg-green-50 dark:bg-green-900/20 text-green-800 dark:text-green-300 p-4 rounded-md mb-4 flex items-center border border-green-100 dark:border-green-900/30">
           <CheckCircle className="h-5 w-5 mr-2" />
           <p className="text-sm">Resume parsed and uploaded successfully!</p>
         </div>
@@ -94,8 +94,8 @@ export const ResumeUploader: React.FC = () => {
 
       {/* Parsing Status */}
       {parsingStatus === "parsing" && (
-        <div className="bg-blue-50 text-blue-800 p-4 rounded-md mb-4 flex items-center">
-          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600 mr-2"></div>
+        <div className="bg-blue-50 dark:bg-blue-900/20 text-blue-800 dark:text-blue-300 p-4 rounded-md mb-4 flex items-center border border-blue-100 dark:border-blue-900/30">
+          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600 dark:border-blue-400 mr-2"></div>
           <p className="text-sm">Parsing resume content...</p>
         </div>
       )}
@@ -104,8 +104,8 @@ export const ResumeUploader: React.FC = () => {
         {...getRootProps()}
         className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
           isDragActive
-            ? "border-primary-500 bg-primary-50"
-            : "border-gray-300 hover:border-primary-400"
+            ? "border-primary-500 bg-primary-50 dark:bg-primary-900/20"
+            : "border-gray-300 dark:border-dark-700 hover:border-primary-400 dark:hover:border-primary-500 bg-gray-50 dark:bg-dark-800/50"
         }`}
       >
         <input {...getInputProps()} />
@@ -113,17 +113,17 @@ export const ResumeUploader: React.FC = () => {
           {isDragActive ? (
             <>
               <FileText className="h-12 w-12 text-primary-500 mb-3" />
-              <p className="text-primary-700 font-medium">
+              <p className="text-primary-700 dark:text-primary-300 font-medium">
                 Drop your resume here
               </p>
             </>
           ) : (
             <>
-              <Upload className="h-12 w-12 text-gray-400 mb-3" />
-              <p className="text-gray-700 font-medium mb-1">
+              <Upload className="h-12 w-12 text-gray-400 dark:text-dark-400 mb-3" />
+              <p className="text-slate-700 dark:text-slate-200 font-medium mb-1">
                 Drag & drop your resume here, or click to browse
               </p>
-              <p className="text-gray-500 text-sm">
+              <p className="text-slate-500 dark:text-dark-400 text-sm">
                 Supports PDF files (Max 10MB)
               </p>
             </>

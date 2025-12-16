@@ -4,7 +4,7 @@ import { StatCard } from '../components/dashboard/StatCard';
 import { InterviewHistoryCard } from '../components/dashboard/InterviewHistoryCard';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
-import { Video, Award, BarChart2, FileText, Calendar, TrendingUp, Clock } from 'lucide-react';
+import { Video, Award, BarChart2, FileText, TrendingUp, Clock } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useInterviewStore } from '../store/interviewStore';
 import { motion } from 'framer-motion';
@@ -117,18 +117,18 @@ export const DashboardPage: React.FC = () => {
               <div className="space-y-4">
                 <div className="h-40">
                   {/* This would be a chart in the real implementation */}
-                  <div className="w-full h-full flex items-center justify-center bg-gray-100 rounded-md">
-                    <BarChart2 className="h-12 w-12 text-gray-400" />
+                  <div className="w-full h-full flex items-center justify-center bg-slate-50 dark:bg-dark-800 rounded-md">
+                    <BarChart2 className="h-12 w-12 text-slate-400 dark:text-dark-700" />
                   </div>
                 </div>
                 
                 <div className="space-y-2">
-                  <h4 className="text-sm font-medium text-gray-700">Your Strengths:</h4>
+                  <h4 className="text-sm font-medium text-slate-700 dark:text-dark-300">Your Strengths:</h4>
                   <div className="flex flex-wrap gap-2">
                     {['Communication', 'Problem Solving', 'Technical Knowledge'].map((skill, i) => (
                       <span 
                         key={i}
-                        className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800"
+                        className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300"
                       >
                         {skill}
                       </span>
@@ -137,12 +137,12 @@ export const DashboardPage: React.FC = () => {
                 </div>
                 
                 <div className="space-y-2">
-                  <h4 className="text-sm font-medium text-gray-700">Areas to Improve:</h4>
+                  <h4 className="text-sm font-medium text-slate-700 dark:text-dark-300">Areas to Improve:</h4>
                   <div className="flex flex-wrap gap-2">
                     {['Confidence', 'Conciseness', 'Body Language'].map((skill, i) => (
                       <span 
                         key={i}
-                        className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800"
+                        className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300"
                       >
                         {skill}
                       </span>
@@ -151,7 +151,7 @@ export const DashboardPage: React.FC = () => {
                 </div>
                 
                 <div className="pt-2">
-                  <Link to="/analytics" className="text-sm text-primary-600 hover:text-primary-700">
+                  <Link to="/analytics" className="text-sm text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300">
                     View detailed analytics →
                   </Link>
                 </div>

@@ -18,8 +18,12 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
     register,
     handleSubmit,
     formState: { errors },
-    reset,
-  } = useForm<LoginFormData>();
+  } = useForm({
+    defaultValues: {
+      email: "",
+      password: "",
+    },
+  });
   const { login, isLoading, error, clearError, isAuthenticated } =
     useAuthStore();
   const [serverStatus, setServerStatus] = useState<
@@ -54,11 +58,11 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className="glass p-8 rounded-2xl border border-white/10 shadow-2xl max-w-md w-full relative overflow-hidden"
+      className="glass dark:glass-dark p-8 rounded-2xl border border-slate-200 dark:border-white/10 shadow-xl dark:shadow-2xl max-w-md w-full relative overflow-hidden"
     >
       <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary-500 to-secondary-500" />
       
-      <h2 className="text-2xl font-bold text-white mb-6">
+      <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-6">
         Login to your account
       </h2>
 
@@ -135,7 +139,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
         <div>
           <label
             htmlFor="email"
-            className="block text-sm font-medium text-slate-300"
+            className="block text-sm font-medium text-slate-700 dark:text-slate-300"
           >
             Email
           </label>
@@ -145,8 +149,8 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
               type="email"
               autoComplete="email"
               className={`appearance-none block w-full px-3 py-2 border ${
-                errors.email ? "border-red-500/50" : "border-white/10"
-              } rounded-lg bg-slate-900/50 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent sm:text-sm transition-all`}
+                errors.email ? "border-red-500/50" : "border-slate-300 dark:border-white/10"
+              } rounded-lg bg-white dark:bg-slate-900/50 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent sm:text-sm transition-all`}
               placeholder="you@example.com"
               {...register("email", {
                 required: "Email is required",
@@ -167,7 +171,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
         <div>
           <label
             htmlFor="password"
-            className="block text-sm font-medium text-slate-300"
+            className="block text-sm font-medium text-slate-700 dark:text-slate-300"
           >
             Password
           </label>
@@ -177,8 +181,8 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
               type="password"
               autoComplete="current-password"
               className={`appearance-none block w-full px-3 py-2 border ${
-                errors.password ? "border-red-500/50" : "border-white/10"
-              } rounded-lg bg-slate-900/50 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent sm:text-sm transition-all`}
+                errors.password ? "border-red-500/50" : "border-slate-300 dark:border-white/10"
+              } rounded-lg bg-white dark:bg-slate-900/50 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent sm:text-sm transition-all`}
               placeholder="••••••••"
               {...register("password", {
                 required: "Password is required",
@@ -202,11 +206,11 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
               id="remember-me"
               name="remember-me"
               type="checkbox"
-              className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded bg-slate-800 border-white/10"
+              className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded bg-white dark:bg-slate-800 border-slate-300 dark:border-white/10"
             />
             <label
               htmlFor="remember-me"
-              className="ml-2 block text-sm text-slate-300"
+              className="ml-2 block text-sm text-slate-600 dark:text-slate-300"
             >
               Remember me
             </label>
@@ -215,7 +219,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
           <div className="text-sm">
             <a
               href="#"
-              className="font-medium text-primary-400 hover:text-primary-300"
+              className="font-medium text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300"
             >
               Forgot your password?
             </a>

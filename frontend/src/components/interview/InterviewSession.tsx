@@ -1,200 +1,191 @@
-import React, { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useEffect, useState } from "react";
 import { Button } from "../ui/Button";
+import { Card } from "../ui/Card";
 import { useInterviewStore } from "../../store/interviewStore";
-import { JitsiVideo } from "./JitsiVideo";
-import { LocalAIAgent } from "./LocalAIAgent";
-import { PerformanceMetrics } from "./PerformanceMetrics";
-import { Mic, MicOff, Video, VideoOff, PhoneOff, Activity, Sparkles } from "lucide-react";
+import { Send, Clock } from "lucide-react";
 import { motion } from "framer-motion";
 
 export const InterviewSession: React.FC = () => {
-  const [isMuted, setIsMuted] = useState(false);
-  const [isVideoOff, setIsVideoOff] = useState(false);
-  const [isConnected, setIsConnected] = useState(false);
-  const { currentSession, endInterview, isLoading } = useInterviewStore();
-  const navigate = useNavigate();
+  const [answer, setAnswer] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(90); // 90 seconds per question
+  
+  const { 
+    questions, 
+    currentQuestionIndex, 
+    submitAnswer,
+    config
+  } = useInterviewStore();
+  
+  const currentQuestion = questions[currentQuestionIndex];
 
-  // Demo data for the emotion timeline
-  const [emotions, setEmotions] = useState<
-    { timestamp: number; emotion: string; intensity: number }[]
-  >([]);
-  const emotionInterval = useRef<NodeJS.Timeout | null>(null);
-
+  // Timer Effect
   useEffect(() => {
-    if (isConnected && !emotionInterval.current) {
-      // Simulate emotion detection with random data
-      emotionInterval.current = setInterval(() => {
-        const possibleEmotions = [
-          "neutral",
-          "confident",
-          "nervous",
-          "confused",
-          "engaged",
-        ];
-        const randomEmotion =
-          possibleEmotions[Math.floor(Math.random() * possibleEmotions.length)];
-        const newEmotionPoint = {
-          timestamp: Date.now(),
-          emotion: randomEmotion,
-          intensity: Math.random() * 0.5 + 0.5, // Value between 0.5 and 1.0
-        };
-
-        setEmotions((prev) => [...prev, newEmotionPoint]);
-      }, 3000);
-    }
-
-    return () => {
-      if (emotionInterval.current) {
-        clearInterval(emotionInterval.current);
-      }
-    };
-  }, [isConnected]);
-
-  const handleEndInterview = async () => {
-    if (currentSession) {
-      await endInterview();
-      navigate("/interview/feedback", {
-        state: { interviewId: currentSession.id },
+    const timer = setInterval(() => {
+      setTimeLeft((prev) => {
+        if (prev <= 1) {
+             clearInterval(timer);
+             handleAutoSubmit();
+             return 0;
+        }
+        return prev - 1;
       });
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [currentQuestionIndex]); // Reset on index change implicitly via reset effect below? No, separate logic.
+
+  // Reset state on new question
+  useEffect(() => {
+    setTimeLeft(90);
+    setAnswer("");
+    setIsSubmitting(false);
+  }, [currentQuestionIndex]);
+
+  const handleAutoSubmit = () => {
+      // Auto submit whatever is in the text area
+      // We need to access the latest 'answer' state. 
+      // Since this is called from closure, use a ref or ensure dependency?
+      // Actually simpler to just call handleSubmit logic with current state 
+      // But setState inside interval is tricky with closures. 
+      // Let's delegate to a function that uses the ref or just rely on the fact 
+      // that we want to trigger submission.
+      // Ideally we trigger the same flow.
+      handleSubmit(true); 
+  };
+
+  const handleSubmit = async (auto = false) => {
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+    
+    // Simulate AI thinking if not auto-submit (or even if auto, to show transition)
+    if (!auto) {
+        await new Promise(resolve => setTimeout(resolve, 1500));
+    } else {
+        await new Promise(resolve => setTimeout(resolve, 500)); // Short delay for auto
     }
+    
+    submitAnswer(answer); 
+    // State reset is handled by useEffect on currentQuestionIndex change
+  };
+
+  // Helper for auto-submit closure issue
+  const answerRef = React.useRef(answer);
+  useEffect(() => { answerRef.current = answer; }, [answer]);
+  
+  // Re-implement auto-submit to use Ref
+  useEffect(() => {
+     if (timeLeft === 0) {
+         submitAnswer(answerRef.current);
+     }
+  }, [timeLeft, submitAnswer]); 
+
+
+  if (!currentQuestion) {
+     return (
+        <div className="flex items-center justify-center h-full">
+           <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-600 mb-4 mx-auto"></div>
+              <p className="text-slate-600 dark:text-slate-400">Loading Question...</p>
+           </div>
+        </div>
+     );
+  }
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="h-full w-full max-w-7xl mx-auto p-4 lg:p-6"
+      className="h-full w-full max-w-5xl mx-auto p-4 lg:p-6 flex flex-col gap-6"
     >
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[calc(100vh-100px)]">
-        {/* Main Video Area */}
-        <div className="lg:col-span-2 h-full flex flex-col gap-4">
-          <div className="flex-grow relative rounded-2xl overflow-hidden border border-white/10 shadow-2xl bg-slate-900">
-            {/* AI Agent View */}
-            <div className="absolute inset-0">
-              <LocalAIAgent
-                onConnected={() => setIsConnected(true)}
-                onQuestionAsked={(question) => {
-                  console.log("Question asked:", question);
-                }}
-              />
-              
-              {/* Overlay Gradient */}
-              <div className="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-transparent to-slate-900/20 pointer-events-none" />
+        {/* Header Section */}
+        {/* Header Section */}
+        <Card className="flex flex-col md:flex-row justify-between items-center gap-4">
+             <div>
+                <h1 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"/>
+                    AI Interview in Progress
+                </h1>
+                <p className="text-sm text-slate-500 dark:text-slate-400 capitalize">
+                    {config.role} • {config.difficulty}
+                </p>
+             </div>
+
+            <div className="flex items-center gap-6 w-full md:w-auto">
+                <div className="flex flex-col w-full md:w-48">
+                    <div className="flex justify-between text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">
+                        <span>Question {currentQuestionIndex + 1}</span>
+                        <span>{questions.length} Total</span>
+                    </div>
+                    <div className="h-2 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
+                        <div 
+                            className="h-full bg-primary-600 transition-all duration-500"
+                            style={{ width: `${((currentQuestionIndex + 1) / questions.length) * 100}%` }}
+                        />
+                    </div>
+                </div>
+                
+                <div className={`flex items-center gap-2 font-mono font-bold text-xl ${timeLeft < 20 ? 'text-red-500' : 'text-slate-700 dark:text-slate-300'}`}>
+                    <Clock size={20} />
+                    {formatTime(timeLeft)}
+                </div>
             </div>
+        </Card>
 
-            {/* Status Indicators */}
-            <div className="absolute top-4 left-4 flex items-center gap-2">
-              <div className={`px-3 py-1 rounded-full text-xs font-medium flex items-center gap-2 backdrop-blur-md border ${isConnected ? 'bg-green-500/20 border-green-500/30 text-green-400' : 'bg-yellow-500/20 border-yellow-500/30 text-yellow-400'}`}>
-                <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-500 animate-pulse' : 'bg-yellow-500'}`} />
-                {isConnected ? 'AI Connected' : 'Connecting...'}
-              </div>
-              <div className="px-3 py-1 rounded-full bg-slate-900/40 backdrop-blur-md border border-white/10 text-xs text-slate-300 flex items-center gap-2">
-                <Sparkles size={12} className="text-primary-400" />
-                GPT-4o Enabled
-              </div>
-            </div>
+      <div className="grid grid-cols-1 gap-6 flex-grow">
+        {/* Question Area */}
+        <Card className="flex flex-col min-h-[160px] justify-center relative overflow-hidden">
+             {isSubmitting ? (
+                 <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm z-10 transition-all">
+                      <div className="animate-bounce text-4xl mb-4">🤖</div>
+                      <p className="text-primary-600 font-medium animate-pulse">AI is thinking...</p>
+                 </div>
+             ) : null}
+             
+             <span className="inline-block px-3 py-1 rounded-full bg-primary-100 dark:bg-primary-900/30 text-xs font-semibold text-primary-700 dark:text-primary-300 w-fit mb-4">
+                 {currentQuestion.category}
+             </span>
+             <h2 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white leading-relaxed">
+                 {currentQuestion.question}
+             </h2>
+        </Card>
 
-            {/* User Video (PIP) */}
-            <motion.div 
-              drag
-              dragConstraints={{ left: 0, right: 300, top: 0, bottom: 200 }}
-              className="absolute bottom-6 right-6 w-48 sm:w-64 aspect-video rounded-xl overflow-hidden border-2 border-white/10 shadow-2xl bg-slate-800 z-20 cursor-move group"
-            >
-              <JitsiVideo
-                isMuted={isMuted}
-                isVideoOff={isVideoOff}
-                onConnected={() => setIsConnected(true)}
-              />
-              <div className="absolute inset-0 ring-1 ring-inset ring-white/10 rounded-xl pointer-events-none" />
-              <div className="absolute bottom-2 left-2 px-2 py-1 rounded bg-black/50 backdrop-blur text-[10px] text-white opacity-0 group-hover:opacity-100 transition-opacity">
-                You
-              </div>
-            </motion.div>
-          </div>
-
-          {/* Controls Bar */}
-          <div className="h-20 glass rounded-2xl flex items-center justify-center gap-6 px-8 shadow-lg">
-            <Button
-              variant="outline"
-              size="lg"
-              className={`rounded-full w-14 h-14 p-0 flex items-center justify-center transition-all duration-300 ${
-                isMuted 
-                  ? "bg-red-500/10 border-red-500/50 text-red-500 hover:bg-red-500/20" 
-                  : "bg-white/5 border-white/10 text-white hover:bg-white/10 hover:scale-105"
-              }`}
-              onClick={() => setIsMuted(!isMuted)}
-            >
-              {isMuted ? <MicOff size={24} /> : <Mic size={24} />}
-            </Button>
-
-            <Button
-              variant="outline"
-              size="lg"
-              className={`rounded-full w-14 h-14 p-0 flex items-center justify-center transition-all duration-300 ${
-                isVideoOff 
-                  ? "bg-red-500/10 border-red-500/50 text-red-500 hover:bg-red-500/20" 
-                  : "bg-white/5 border-white/10 text-white hover:bg-white/10 hover:scale-105"
-              }`}
-              onClick={() => setIsVideoOff(!isVideoOff)}
-            >
-              {isVideoOff ? <VideoOff size={24} /> : <Video size={24} />}
-            </Button>
-
-            <div className="w-px h-8 bg-white/10 mx-2" />
-
-            <Button
-              variant="accent"
-              size="lg"
-              className="rounded-full px-8 bg-red-600 hover:bg-red-700 text-white shadow-lg shadow-red-600/20 hover:shadow-red-600/40 transition-all hover:scale-105"
-              onClick={handleEndInterview}
-              isLoading={isLoading}
-            >
-              <PhoneOff size={20} className="mr-2" />
-              End Session
-            </Button>
-          </div>
-        </div>
-
-        {/* Sidebar / Metrics */}
-        <div className="glass rounded-2xl p-6 flex flex-col h-full overflow-hidden border border-white/10 bg-slate-900/50">
-          <div className="flex items-center gap-2 mb-6">
-            <Activity className="text-primary-400" size={20} />
-            <h2 className="text-lg font-semibold text-white">Live Analysis</h2>
-          </div>
-
-          <div className="flex-grow overflow-y-auto pr-2 custom-scrollbar space-y-6">
-            <PerformanceMetrics
-              metrics={{
-                eyeContact: 0.75,
-                confidence: 0.65,
-                clarity: 0.82,
-                enthusiasm: 0.7,
-                posture: 0.6,
-              }}
-              emotionTimeline={emotions}
-            />
-
-            <div className="p-4 rounded-xl bg-primary-500/10 border border-primary-500/20">
-              <h3 className="text-sm font-medium text-primary-300 mb-3 flex items-center gap-2">
-                <Sparkles size={14} />
-                AI Coach Tips
-              </h3>
-              <ul className="space-y-3">
-                {[
-                  "Maintain eye contact with the camera",
-                  "Speak clearly and at a moderate pace",
-                  "Use the STAR method for behavioral questions",
-                  "Keep answers concise and focused"
-                ].map((tip, i) => (
-                  <li key={i} className="text-xs text-slate-300 flex gap-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-primary-500 mt-1.5 flex-shrink-0" />
-                    {tip}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
+        {/* Answer Area */}
+        <div className="flex flex-col flex-grow">
+            <Card className="flex-grow flex flex-col p-0 overflow-hidden border-2 focus-within:border-primary-500 transition-colors shadow-md">
+                <div className="bg-slate-50 dark:bg-slate-800/50 px-4 py-2 border-b border-slate-200 dark:border-white/10 flex justify-between items-center">
+                    <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Your Answer</span>
+                    <span className="text-xs text-slate-500 dark:text-slate-400">Markdown supported</span>
+                </div>
+                <textarea
+                    className="flex-grow p-6 resize-none focus:outline-none bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-mono text-base leading-relaxed"
+                    placeholder="Type your answer here..."
+                    value={answer}
+                    onChange={(e) => setAnswer(e.target.value)}
+                    disabled={isSubmitting}
+                    autoFocus
+                    spellCheck={false}
+                />
+                <div className="p-4 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-white/10 flex justify-between items-center">
+                     <span className="text-xs text-slate-400">
+                         {answer.length} characters
+                     </span>
+                     <Button 
+                        onClick={() => handleSubmit(false)} 
+                        isLoading={isSubmitting}
+                        disabled={!answer.trim() || isSubmitting}
+                        rightIcon={<Send size={16} />}
+                        className="px-8"
+                    >
+                        Submit Answer
+                     </Button>
+                </div>
+            </Card>
         </div>
       </div>
     </motion.div>

@@ -1,6 +1,6 @@
 import React from 'react';
-import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, LineChart, Line, Tooltip } from 'recharts';
-import { InterviewMetrics, EmotionDataPoint } from '../../types';
+import { XAxis, YAxis, ResponsiveContainer, LineChart, Line, Tooltip } from 'recharts';
+import { EmotionDataPoint } from '../../types';
 
 interface PerformanceMetricsProps {
   metrics: {
@@ -35,12 +35,6 @@ export const PerformanceMetrics: React.FC<PerformanceMetricsProps> = ({ metrics,
     return `${minutes}:${seconds}`;
   };
 
-  const barChartData = Object.entries(metrics).map(([key, value]) => ({
-    name: formatMetricLabel(key),
-    value: value,
-    color: getMetricColor(value),
-  }));
-
   const emotions = emotionTimeline.map(point => ({
     ...point,
     time: formatDate(point.timestamp),
@@ -60,12 +54,12 @@ export const PerformanceMetrics: React.FC<PerformanceMetricsProps> = ({ metrics,
   return (
     <div className="space-y-6">
       <div>
-        <h3 className="text-sm font-medium text-gray-700 mb-2">Current Performance</h3>
+        <h3 className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Current Performance</h3>
         <div className="space-y-2">
           {Object.entries(metrics).map(([key, value]) => (
             <div key={key} className="flex items-center">
-              <span className="text-xs text-gray-600 w-24">{formatMetricLabel(key)}</span>
-              <div className="flex-grow h-3 bg-gray-200 rounded-full overflow-hidden">
+              <span className="text-xs text-slate-600 dark:text-slate-400 w-24">{formatMetricLabel(key)}</span>
+              <div className="flex-grow h-3 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
                 <div 
                   className="h-full rounded-full" 
                   style={{ 
@@ -84,7 +78,7 @@ export const PerformanceMetrics: React.FC<PerformanceMetricsProps> = ({ metrics,
       
       {emotions.length > 0 && (
         <div>
-          <h3 className="text-sm font-medium text-gray-700 mb-2">Emotion Timeline</h3>
+          <h3 className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Emotion Timeline</h3>
           <div className="h-[140px]">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={emotions}>
@@ -132,7 +126,7 @@ export const PerformanceMetrics: React.FC<PerformanceMetricsProps> = ({ metrics,
                   className="w-3 h-3 rounded-full mr-1" 
                   style={{ backgroundColor: getEmotionColor(emotion) }}
                 ></div>
-                <span className="text-xs text-gray-600 capitalize">{emotion}</span>
+                <span className="text-xs text-slate-600 dark:text-slate-400 capitalize">{emotion}</span>
               </div>
             ))}
           </div>

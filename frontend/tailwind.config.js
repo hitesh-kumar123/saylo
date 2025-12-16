@@ -1,5 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 export default {
+  darkMode: 'class',
   content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
   theme: {
     extend: {
@@ -44,9 +45,13 @@ export default {
           950: '#4c0519',
         },
         dark: {
-          900: '#0f172a',
-          800: '#1e293b',
-          700: '#334155',
+          950: '#020617', // Very dark background
+          900: '#0f172a', // Card background
+          800: '#1e293b', // Card hover / lighter background
+          700: '#334155', // Borders
+          400: '#94a3b8', // Secondary text
+          300: '#cbd5e1', // Primary text
+          200: '#e2e8f0', // Headings
         },
       },
       fontFamily: {

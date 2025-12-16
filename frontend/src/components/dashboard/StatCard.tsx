@@ -25,26 +25,26 @@ export const StatCard: React.FC<StatCardProps> = ({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, delay }}
-      className="bg-white rounded-lg shadow-md p-6"
+      className="bg-white dark:bg-dark-900 rounded-lg shadow-md p-6 border border-gray-100 dark:border-dark-700"
     >
       <div className="flex items-start">
         <div className="flex-shrink-0">
-          <div className="flex items-center justify-center h-12 w-12 rounded-md bg-primary-100 text-primary-600">
+          <div className="flex items-center justify-center h-12 w-12 rounded-md bg-primary-50 dark:bg-primary-500/10 text-primary-600 dark:text-primary-400">
             {icon}
           </div>
         </div>
         <div className="ml-4">
-          <h3 className="text-lg font-medium text-gray-900">{title}</h3>
+          <h3 className="text-lg font-medium text-slate-900 dark:text-white">{title}</h3>
           <div className="mt-2 flex items-baseline">
-            <p className="text-3xl font-semibold text-gray-900">{value}</p>
+            <p className="text-3xl font-semibold text-slate-900 dark:text-white">{value}</p>
             {trend && trendValue && (
               <p 
                 className={`ml-2 text-sm font-medium ${
                   trend === 'up' 
-                    ? 'text-green-600' 
+                    ? 'text-green-600 dark:text-green-400' 
                     : trend === 'down' 
-                    ? 'text-red-600' 
-                    : 'text-gray-500'
+                    ? 'text-red-600 dark:text-red-400' 
+                    : 'text-slate-500 dark:text-slate-400'
                 }`}
               >
                 {trend === 'up' && '↑ '}
@@ -53,7 +53,7 @@ export const StatCard: React.FC<StatCardProps> = ({
               </p>
             )}
           </div>
-          {description && <p className="mt-1 text-sm text-gray-500">{description}</p>}
+          {description && <p className="mt-1 text-sm text-slate-500 dark:text-dark-400">{description}</p>}
         </div>
       </div>
     </motion.div>

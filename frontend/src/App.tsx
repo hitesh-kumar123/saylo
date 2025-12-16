@@ -10,7 +10,6 @@ import { LoginPage } from "./pages/LoginPage";
 import { RegisterPage } from "./pages/RegisterPage";
 import { DashboardPage } from "./pages/DashboardPage";
 import { InterviewPage } from "./pages/InterviewPage";
-import { InterviewSessionPage } from "./pages/InterviewSessionPage";
 import { InterviewFeedbackPage } from "./pages/InterviewFeedbackPage";
 import { ResumePage } from "./pages/ResumePage";
 import { CareerPage } from "./pages/CareerPage";
@@ -34,7 +33,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 };
 
 function App() {
-  const { checkAuth, isAuthenticated } = useAuthStore();
+  const { checkAuth } = useAuthStore();
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -92,15 +91,6 @@ function App() {
           element={
             <ProtectedRoute>
               <InterviewPage />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/interview/session"
-          element={
-            <ProtectedRoute>
-              <InterviewSessionPage />
             </ProtectedRoute>
           }
         />

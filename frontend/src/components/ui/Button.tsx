@@ -16,9 +16,9 @@ const variantStyles: Record<ButtonVariant, string> = {
   primary: 'bg-primary-600 hover:bg-primary-700 text-white shadow-sm',
   secondary: 'bg-secondary-600 hover:bg-secondary-700 text-white shadow-sm',
   accent: 'bg-accent-500 hover:bg-accent-600 text-white shadow-sm',
-  outline: 'border border-gray-300 bg-transparent hover:bg-gray-50 text-gray-700',
-  ghost: 'bg-transparent hover:bg-gray-100 text-gray-700',
-  white: 'bg-white text-primary-900 hover:bg-slate-100 shadow-lg',
+  outline: 'border border-gray-300 dark:border-dark-700 bg-transparent hover:bg-gray-50 dark:hover:bg-dark-800 text-gray-700 dark:text-gray-200',
+  ghost: 'bg-transparent hover:bg-gray-100 dark:hover:bg-dark-800 text-gray-700 dark:text-gray-200',
+  white: 'bg-white dark:bg-dark-800 text-primary-900 dark:text-white hover:bg-slate-100 dark:hover:bg-dark-700 shadow-lg',
 };
 
 const sizeStyles: Record<ButtonSize, string> = {

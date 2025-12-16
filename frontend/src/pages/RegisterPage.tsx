@@ -16,9 +16,9 @@ export const RegisterPage: React.FC = () => {
         <div className="w-full max-w-md">
           <RegisterForm onSuccess={handleRegisterSuccess} />
           
-          <p className="mt-6 text-center text-sm text-slate-400">
+          <p className="mt-6 text-center text-sm text-slate-600 dark:text-slate-400">
             Already have an account?{' '}
-            <Link to="/login" className="font-medium text-primary-400 hover:text-primary-300 transition-colors">
+            <Link to="/login" className="font-medium text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 transition-colors">
               Sign in
             </Link>
           </p>

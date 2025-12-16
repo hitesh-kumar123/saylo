@@ -13,3 +13,11 @@ build/
 *~
 coverage/
 .nyc_output/
+
+# OS generated files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Vercel
+.vercel

@@ -1,41 +1,33 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { useForm } from "react-hook-form";
+import React from "react";
 import { Button } from "../ui/Button";
 import { Card } from "../ui/Card";
-import { Video, Briefcase, AlertCircle } from "lucide-react";
+import { Briefcase, Settings, Cpu, Users, Layers } from "lucide-react";
 import { useInterviewStore } from "../../store/interviewStore";
 import { motion } from "framer-motion";
 
-interface InterviewSetupFormData {
-  jobTitle: string;
-  jobDescription?: string;
-}
-
 export const InterviewSetup: React.FC = () => {
-  const [step, setStep] = useState(1);
-  const [jobTitleValue, setJobTitleValue] = useState("");
-  const {
-    register,
-    handleSubmit,
-    watch,
-    formState: { errors },
-  } = useForm<InterviewSetupFormData>();
-  const { startInterview, isLoading, error } = useInterviewStore();
-  const navigate = useNavigate();
-  
-  // Watch jobTitle field
-  const watchedJobTitle = watch("jobTitle");
+  const { config, setInterviewConfig, goToInstructions } = useInterviewStore();
 
-  const onSubmit = async (data: InterviewSetupFormData) => {
-    if (step === 1) {
-      setStep(2);
-      return;
-    }
-
-    await startInterview(data.jobTitle);
-    navigate("/interview/session");
+  const handleRoleSelect = (role: string) => {
+    setInterviewConfig({ role });
   };
+
+  const handleTypeSelect = (type: 'technical' | 'hr' | 'mixed') => {
+    setInterviewConfig({ type });
+  };
+
+  const handleDifficultySelect = (difficulty: 'easy' | 'medium' | 'hard') => {
+    setInterviewConfig({ difficulty });
+  };
+
+  const handleContinue = () => {
+    // Basic validation: ensure all fields are set (though they have defaults)
+    if (config.role && config.type && config.difficulty) {
+        goToInstructions();
+    }
+  };
+
+  const isComplete = !!(config.role && config.type && config.difficulty);
 
   return (
     <motion.div
@@ -45,113 +37,108 @@ export const InterviewSetup: React.FC = () => {
       className="max-w-2xl mx-auto"
     >
       <Card>
-        <form onSubmit={handleSubmit(onSubmit)}>
-          <div className="mb-6">
-            <div className="flex items-center mb-4">
-              <div className="flex items-center justify-center w-10 h-10 rounded-full bg-primary-100 text-primary-600 mr-3">
-                {step === 1 ? <Briefcase size={20} /> : <Video size={20} />}
+        <div className="mb-6">
+          <div className="flex items-center mb-4">
+            <div className="flex items-center justify-center w-10 h-10 rounded-full bg-primary-100 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400 mr-3">
+              <Settings size={20} />
+            </div>
+            <h2 className="text-xl font-semibold text-slate-900 dark:text-white">
+              Set up your AI Interview
+            </h2>
+          </div>
+          
+          <p className="text-slate-600 dark:text-slate-400 mb-6">
+            Customize your interview session to match your goals.
+          </p>
+
+          <div className="space-y-6">
+            
+            {/* Role Selection */}
+            <div>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-3">
+                Target Role
+              </label>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                {['frontend', 'backend', 'fullstack'].map((role) => (
+                  <div
+                    key={role}
+                    onClick={() => handleRoleSelect(role)}
+                    className={`cursor-pointer border rounded-lg p-4 flex flex-col items-center justify-center transition-all ${
+                      config.role === role
+                        ? "border-primary-500 bg-primary-50 dark:bg-primary-900/20 ring-1 ring-primary-500"
+                        : "border-slate-200 dark:border-white/10 hover:border-primary-300 dark:hover:border-primary-700"
+                    }`}
+                  >
+                   <Briefcase className={`mb-2 w-6 h-6 ${config.role === role ? "text-primary-600" : "text-slate-400"}`} />
+                    <span className={`font-medium capitalize ${config.role === role ? "text-primary-700 dark:text-primary-300" : "text-slate-600 dark:text-slate-400"}`}>
+                      {role}
+                    </span>
+                  </div>
+                ))}
               </div>
-              <h2 className="text-xl font-semibold text-gray-900">
-                {step === 1 ? "Job Details" : "Ready to Begin"}
-              </h2>
             </div>
 
-            {error && (
-              <div className="flex items-start p-4 mb-4 bg-red-50 rounded-md">
-                <AlertCircle className="h-5 w-5 text-red-400 mt-0.5 mr-2" />
-                <p className="text-sm text-red-700">{error}</p>
-              </div>
-            )}
-
-            {step === 1 ? (
-              <div className="space-y-4">
-                <div>
-                  <label
-                    htmlFor="jobTitle"
-                    className="block text-sm font-medium text-gray-700 mb-1"
+            {/* Type Selection */}
+            <div>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-3">
+                Interview Type
+              </label>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                {[
+                  { id: 'technical', label: 'Technical', icon: Cpu },
+                  { id: 'hr', label: 'HR / Behavioral', icon: Users },
+                  { id: 'mixed', label: 'Mixed', icon: Layers },
+                ].map((type) => (
+                  <div
+                    key={type.id}
+                    onClick={() => handleTypeSelect(type.id as any)}
+                    className={`cursor-pointer border rounded-lg p-4 flex flex-col items-center justify-center transition-all ${
+                      config.type === type.id
+                        ? "border-primary-500 bg-primary-50 dark:bg-primary-900/20 ring-1 ring-primary-500"
+                        : "border-slate-200 dark:border-white/10 hover:border-primary-300 dark:hover:border-primary-700"
+                    }`}
                   >
-                    Job Title <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    id="jobTitle"
-                    className={`w-full px-3 py-2 border ${
-                      errors.jobTitle ? "border-red-300" : "border-gray-300"
-                    } rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500`}
-                    placeholder="e.g. Software Engineer, Product Manager"
-                    {...register("jobTitle", {
-                      required: "Job title is required",
-                      onChange: (e) => setJobTitleValue(e.target.value),
-                    })}
-                  />
-                  {errors.jobTitle && (
-                    <p className="mt-1 text-sm text-red-600">
-                      {errors.jobTitle.message}
-                    </p>
-                  )}
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="jobDescription"
-                    className="block text-sm font-medium text-gray-700 mb-1"
-                  >
-                    Job Description (Optional)
-                  </label>
-                  <textarea
-                    id="jobDescription"
-                    rows={4}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
-                    placeholder="Enter job description or specific skills you want to focus on"
-                    {...register("jobDescription")}
-                  ></textarea>
-                </div>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                <div className="bg-primary-50 p-4 rounded-md">
-                  <p className="text-primary-800 font-medium">
-                    Interview for: <span className="font-bold">
-                      {watchedJobTitle || jobTitleValue || "Position"}
+                    <type.icon className={`mb-2 w-6 h-6 ${config.type === type.id ? "text-primary-600" : "text-slate-400"}`} />
+                    <span className={`font-medium ${config.type === type.id ? "text-primary-700 dark:text-primary-300" : "text-slate-600 dark:text-slate-400"}`}>
+                      {type.label}
                     </span>
-                  </p>
-                </div>
-
-                <div className="p-4 border border-gray-200 rounded-md space-y-2">
-                  <h3 className="font-medium text-gray-900">
-                    Before you begin:
-                  </h3>
-                  <ul className="list-disc pl-5 text-sm text-gray-600 space-y-1">
-                    <li>Find a quiet place with good lighting</li>
-                    <li>Make sure your camera and microphone are working</li>
-                    <li>Have a pen and paper ready for notes</li>
-                    <li>The interview will last approximately 15-20 minutes</li>
-                    <li>You can end the interview at any time</li>
-                  </ul>
-                </div>
+                  </div>
+                ))}
               </div>
-            )}
-          </div>
+            </div>
 
-          <div className="flex justify-between">
-            {step === 2 && (
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setStep(1)}
-              >
-                Back
-              </Button>
-            )}
-            <Button
-              type="submit"
-              isLoading={isLoading}
-              className={step === 1 ? "ml-auto" : ""}
+             {/* Difficulty Selection */}
+             <div>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-3">
+                Difficulty Level
+              </label>
+              <div className="grid grid-cols-3 gap-3">
+                {['easy', 'medium', 'hard'].map((diff) => (
+                  <div
+                    key={diff}
+                    onClick={() => handleDifficultySelect(diff as any)}
+                    className={`cursor-pointer border rounded-lg p-3 text-center transition-all ${
+                      config.difficulty === diff
+                        ? "border-primary-500 bg-primary-50 dark:bg-primary-900/20 ring-1 ring-primary-500 text-primary-700 dark:text-primary-300"
+                        : "border-slate-200 dark:border-white/10 hover:border-primary-300 dark:hover:border-primary-700 text-slate-600 dark:text-slate-400"
+                    }`}
+                  >
+                    <span className="font-medium capitalize">{diff}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <Button 
+                onClick={handleContinue} 
+                disabled={!isComplete} 
+                className="w-full mt-6" 
+                size="lg"
             >
-              {step === 1 ? "Next" : "Start Interview"}
+              Continue to Instructions
             </Button>
           </div>
-        </form>
+        </div>
       </Card>
     </motion.div>
   );

@@ -21,3 +21,12 @@ Desktop.ini
 
 # Vercel
 .vercel
+
+# Python / Backend
+backend/venv/
+backend/__pycache__/
+__pycache__/
+*.pyc
+
+# AI Models (Ignore all large model files)
+backend/models/*.gguf

@@ -27,7 +27,7 @@ const sizeStyles: Record<ButtonSize, string> = {
   lg: 'px-6 py-3 text-lg',
 };
 
-export const Button: React.FC<ButtonProps> = ({
+export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(({
   variant = 'primary',
   size = 'md',
   isLoading = false,
@@ -38,9 +38,10 @@ export const Button: React.FC<ButtonProps> = ({
   disabled,
   children,
   ...props
-}) => {
+}, ref) => {
   return (
     <button
+      ref={ref}
       className={`
         inline-flex items-center justify-center
         font-medium rounded-md
@@ -81,4 +82,6 @@ export const Button: React.FC<ButtonProps> = ({
       {!isLoading && rightIcon && <span className="ml-2">{rightIcon}</span>}
     </button>
   );
-};
+});
+
+Button.displayName = 'Button';

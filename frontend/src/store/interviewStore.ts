@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { api } from "../services/api";
 import { v4 as uuidv4 } from 'uuid';
+import { InterviewSession } from '../types';
 
 export type InterviewStatus = 'idle' | 'setup' | 'instructions' | 'live' | 'completed';
 
@@ -18,6 +19,7 @@ interface InterviewState {
   sessionId: string | null;
   isLoading: boolean;
   error: string | null;
+  sessions: InterviewSession[];
 
   goToSetup: () => void;
   goToInstructions: () => void;
@@ -26,6 +28,7 @@ interface InterviewState {
   endInterview: () => void;
   resetInterview: () => void;
   setInterviewConfig: (config: Partial<InterviewConfig>) => void;
+  fetchSessions: () => Promise<void>;
 }
 
 const DEFAULT_CONFIG: InterviewConfig = {
@@ -42,6 +45,7 @@ export const useInterviewStore = create<InterviewState>((set, get) => ({
   sessionId: null,
   isLoading: false,
   error: null,
+  sessions: [],
 
   goToSetup: () => set({ interviewStatus: 'setup', error: null }),
   
@@ -132,4 +136,33 @@ export const useInterviewStore = create<InterviewState>((set, get) => ({
   setInterviewConfig: (config) => set((state) => ({ 
     config: { ...state.config, ...config } 
   })),
+
+  fetchSessions: async () => {
+    try {
+        set({ isLoading: true });
+        const sessionsData = await api.getSessions();
+        
+        // Map backend data to frontend model
+        const formattedSessions: InterviewSession[] = sessionsData.map((s: any) => ({
+            id: s.id,
+            userId: 'user-1', // Placeholder as backend doesn't return user yet
+            jobTitle: `${s.role} Developer`, 
+            startTime: s.start_time,
+            endTime: s.end_time,
+            // duration, score, status removed as they are not in InterviewSession type
+            feedback: s.feedback ? {
+                overallScore: 8, // Mock score since backend only gives text feedback currently
+                strengths: ['Communication', 'Clarity'], // Mock strengths
+                weaknesses: [],
+                detailedFeedback: s.feedback,
+                recommendations: []
+            } : undefined
+        }));
+
+        set({ sessions: formattedSessions, isLoading: false });
+    } catch (err) {
+        console.error("Failed to fetch sessions:", err);
+        set({ error: "Failed to load history", isLoading: false });
+    }
+  }
 }));

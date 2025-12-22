@@ -19,4 +19,9 @@ export const api = {
     });
     return response.data; // { feedback, next_question, is_completed }
   },
+
+  getSessions: async () => {
+    const response = await axios.get(`${API_URL}/interview/history`);
+    return response.data;
+  },
 };

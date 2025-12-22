@@ -1,4 +1,5 @@
 from fastapi import APIRouter, HTTPException
+from typing import List, Dict, Any
 from app.schemas.interview import StartInterviewRequest, InterviewResponse, AnswerRequest, FeedbackResponse
 from app.services.llm_service import llm_service
 from app.services.session_service import session_service
@@ -17,6 +18,10 @@ async def start_interview(request: StartInterviewRequest):
     
     return InterviewResponse(session_id=session_id, message=question)
 
+@router.get("/history", response_model=List[Dict[str, Any]])
+async def get_interview_history():
+    return session_service.get_all_sessions()
+
 @router.post("/chat", response_model=FeedbackResponse)
 async def chat_interview(request: AnswerRequest):
     session = session_service.get_session(request.session_id)
@@ -27,6 +32,7 @@ async def chat_interview(request: AnswerRequest):
     
     # Simple logic: 5 questions total
     if len(session["history"]) >= 10: # 5 Q + 5 A
+        session_service.complete_session(request.session_id, "Interview Completed")
         return FeedbackResponse(feedback="Interview Completed. Thank you!", is_completed=True)
         
     # Generate next question

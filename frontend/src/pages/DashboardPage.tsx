@@ -17,13 +17,19 @@ export const DashboardPage: React.FC = () => {
   }, [fetchSessions]);
   
   // Mock data for demonstration
+  // Derived stats from real data
+  const completedSessions = sessions.filter(s => s.endTime);
+  const recentStrengths = Array.from(new Set(
+    completedSessions.flatMap(s => s.feedback?.strengths || [])
+  )).slice(0, 3);
+
   const stats = {
     interviews: sessions.length,
-    avgScore: sessions.length > 0 
-      ? (sessions.reduce((sum, session) => sum + (session.feedback?.overallScore || 0), 0) / sessions.length).toFixed(1) 
+    avgScore: completedSessions.length > 0 
+      ? (completedSessions.reduce((sum, session) => sum + (session.feedback?.overallScore || 0), 0) / completedSessions.length).toFixed(1) 
       : '0.0',
-    skillsImproved: ['Confidence', 'Clarity', 'Eye Contact'],
-    nextInterview: '2023-11-25T15:00:00',
+    skillsImproved: recentStrengths.length > 0 ? recentStrengths : ['Practice to see improvements'],
+    nextInterview: 'Schedule now', // No scheduled interviews in this simple app
   };
 
   return (

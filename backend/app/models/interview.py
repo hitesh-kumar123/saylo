@@ -26,6 +26,7 @@ class Interview(Base):
     difficulty = Column(String, nullable=False)
     topic = Column(String, nullable=True)
     status = Column(Enum(InterviewStatus), default=InterviewStatus.IN_PROGRESS)
+    current_state = Column(Text, nullable=True) # Storing JSON as Text for broad compatibility
     start_time = Column(DateTime(timezone=True), server_default=func.now())
     end_time = Column(DateTime(timezone=True), nullable=True)
     overall_feedback = Column(Text, nullable=True)

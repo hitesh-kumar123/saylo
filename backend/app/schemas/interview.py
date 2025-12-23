@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 
 class StartInterviewRequest(BaseModel):
     role: str
@@ -13,6 +13,10 @@ class InterviewResponse(BaseModel):
 class AnswerRequest(BaseModel):
     session_id: str
     answer: str
+    non_verbal_metrics: Optional[Dict[str, Any]] = None
+
+class EndInterviewRequest(BaseModel):
+    session_id: str
 
 class FeedbackResponse(BaseModel):
     feedback: str

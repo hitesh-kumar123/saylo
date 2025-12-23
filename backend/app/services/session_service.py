@@ -1,6 +1,5 @@
 from datetime import datetime
-
-from datetime import datetime
+import json
 from sqlalchemy.orm import Session
 from app.db.session import SessionLocal
 from app.models import Interview, Question, Answer, InterviewStatus
@@ -15,13 +14,28 @@ class SessionService:
     def create_session(self, session_id: str, role: str, difficulty: str):
         db = self.get_db()
         try:
+            # Prepare initial state
+            initial_state = {
+                "current_stage": "technical_deep_dive",
+                "question_count": 0,
+                "dynamic_difficulty": difficulty,
+                "topics_covered": [],
+                "performance_profile": {
+                    "strong_areas": [],
+                    "weak_areas": [],
+                    "critical_mistakes": []
+                },
+                "next_focus": "Start the interview"
+            }
+
             # Check if user exists? skipping for now as user api is not ready
             # Assuming guest or NULL user_id for now
             new_interview = Interview(
                 id=session_id,
                 role=role,
                 difficulty=difficulty,
-                status=InterviewStatus.IN_PROGRESS
+                status=InterviewStatus.IN_PROGRESS,
+                current_state=json.dumps(initial_state)
             )
             db.add(new_interview)
             db.commit()
@@ -52,8 +66,29 @@ class SessionService:
                 "history": history,
                 "start_time": interview.start_time.isoformat() if interview.start_time else None,
                 "end_time": interview.end_time.isoformat() if interview.end_time else None,
-                "feedback": interview.overall_feedback
+                "feedback": interview.overall_feedback,
+                "current_state": json.loads(interview.current_state) if interview.current_state else {}
             }
+        finally:
+            db.close()
+
+    def get_state(self, session_id: str):
+        db = self.get_db()
+        try:
+            interview = db.query(Interview).filter(Interview.id == session_id).first()
+            if interview and interview.current_state:
+                return json.loads(interview.current_state)
+            return None
+        finally:
+            db.close()
+
+    def update_state(self, session_id: str, new_state: dict):
+        db = self.get_db()
+        try:
+            interview = db.query(Interview).filter(Interview.id == session_id).first()
+            if interview:
+                interview.current_state = json.dumps(new_state)
+                db.commit()
         finally:
             db.close()
 
@@ -122,6 +157,26 @@ class SessionService:
                 interview.overall_feedback = feedback
                 interview.status = InterviewStatus.COMPLETED
                 db.commit()
+        finally:
+            db.close()
+
+    def get_average_score(self, session_id: str) -> float:
+        db = self.get_db()
+        try:
+            # Join Interview -> Question -> Answer
+            # Actually easier to just query Answers for questions in this interview
+            # But we need to link Answer -> Question -> Interview
+            scores = db.query(Answer.ai_score)\
+                .join(Question)\
+                .filter(Question.interview_id == session_id)\
+                .filter(Answer.ai_score != None)\
+                .all()
+            
+            if not scores:
+                return 0.0
+            
+            total = sum([s[0] for s in scores])
+            return round(total / len(scores), 1)
         finally:
             db.close()
 

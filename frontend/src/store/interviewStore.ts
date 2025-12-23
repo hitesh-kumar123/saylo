@@ -24,7 +24,7 @@ interface InterviewState {
   goToSetup: () => void;
   goToInstructions: () => void;
   startInterview: () => Promise<void>;
-  submitAnswer: (answer: string) => Promise<void>;
+  submitAnswer: (answer: string, metrics?: any) => Promise<void>;
   endInterview: () => void;
   resetInterview: () => void;
   setInterviewConfig: (config: Partial<InterviewConfig>) => void;
@@ -81,7 +81,8 @@ export const useInterviewStore = create<InterviewState>((set, get) => ({
     }
   },
 
-  submitAnswer: async (answer: string) => {
+  submitAnswer: async (answer: string, metrics?: any) => {
+    // ... existing logic ...
     const { sessionId, questions, currentQuestionIndex } = get();
     if (!sessionId) return;
     
@@ -91,7 +92,7 @@ export const useInterviewStore = create<InterviewState>((set, get) => ({
     set({ questions: updatedQuestions, isLoading: true });
 
     try {
-        const data = await api.submitAnswer(sessionId, answer);
+        const data = await api.submitAnswer(sessionId, answer, metrics);
         
         if (data.is_completed) {
              set({ interviewStatus: 'completed', isLoading: false });
@@ -116,6 +117,37 @@ export const useInterviewStore = create<InterviewState>((set, get) => ({
         console.error("Failed to submit answer:", err);
         set({ error: "Failed to submit answer.", isLoading: false });
     }
+  },
+
+  handleVoiceResponse: (data: any) => {
+      // Called by component after successful audio upload
+      const { questions, currentQuestionIndex } = get();
+      
+      // Update the current question with a placeholder for voice
+      // Ideally we would get the transcribed text back from backend, 
+      // but if we don't, we can mark it as [Voice Answer]
+      const updatedQuestions = [...questions];
+      updatedQuestions[currentQuestionIndex].userAnswer = "(Voice Answer)"; // or transcribe result if available
+
+      if (data.is_completed) {
+           set({ questions: updatedQuestions, interviewStatus: 'completed', isLoading: false });
+           return;
+      }
+
+      if (data.next_question) {
+           const nextQuestion = {
+               id: uuidv4(),
+               question: data.next_question,
+               category: "Follow-up",
+               userAnswer: ""
+           };
+           
+           set({ 
+               questions: [...updatedQuestions, nextQuestion],
+               currentQuestionIndex: currentQuestionIndex + 1,
+               isLoading: false
+           });
+      }
   },
 
   endInterview: () => {

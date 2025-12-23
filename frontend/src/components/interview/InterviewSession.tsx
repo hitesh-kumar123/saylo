@@ -3,10 +3,12 @@ import Webcam from "react-webcam";
 import { Button } from "../ui/Button";
 import { Card } from "../ui/Card";
 import { useInterviewStore } from "../../store/interviewStore";
-import { Send, Clock, Mic, MicOff, Camera, CameraOff, AlertTriangle } from "lucide-react";
+import { Send, Clock, Mic, MicOff, Camera, CameraOff, AlertTriangle, XCircle, CheckCircle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { AudioVisualizer } from "./AudioVisualizer";
 import { FaceLandmarker, FilesetResolver } from "@mediapipe/tasks-vision";
+import AudioRecorder from "../AudioRecorder"; // Import Component
+import { api } from "../../services/api"; // Import API
 
 export const InterviewSession: React.FC = () => {
   const [answer, setAnswer] = useState("");
@@ -23,13 +25,20 @@ export const InterviewSession: React.FC = () => {
   const lastVideoTime = useRef(-1);
   const requestRef = useRef<number>();
   
+  // Non-Verbal Metrics Refs
+  const samplesCount = useRef(0);
+  const lookingAwayCount = useRef(0);
+  const totalHeadDelta = useRef(0);
+  const lastHeadMatrix = useRef<number[] | null>(null);
+
   const webcamRef = useRef<Webcam>(null);
 
   const { 
     questions, 
     currentQuestionIndex, 
     submitAnswer,
-    config
+    config,
+    sessionId // Destructure sessionId
   } = useInterviewStore();
   
   const currentQuestion = questions[currentQuestionIndex];
@@ -64,6 +73,7 @@ export const InterviewSession: React.FC = () => {
           delegate: "GPU"
         },
         outputFaceBlendshapes: true,
+        outputFacialTransformationMatrixes: true,
         runningMode: "VIDEO",
         numFaces: 1
       });
@@ -76,29 +86,58 @@ export const InterviewSession: React.FC = () => {
   const predict = () => {
     if (webcamRef.current && webcamRef.current.video && isCameraOn && faceLandmarker) {
        const video = webcamRef.current.video;
-       if (video.currentTime !== lastVideoTime.current) {
+       if (video.readyState >= 2 && video.videoWidth > 0 && video.videoHeight > 0 && video.currentTime !== lastVideoTime.current) {
           lastVideoTime.current = video.currentTime;
           const result = faceLandmarker.detectForVideo(video, Date.now());
           
           if (result.faceBlendshapes && result.faceBlendshapes.length > 0 && result.faceBlendshapes[0].categories) {
              const shapes = result.faceBlendshapes[0].categories;
-             // Simple "Look Away" detection using Yaw/Pitch proxy from blendshapes or landmarks
-             // Using Eye Look In/Out/Up/Down blendshapes is more accurate for eyes
+             // Eye Look logic
              const eyeLookInLeft = shapes.find(s => s.categoryName === 'eyeLookInLeft')?.score || 0;
              const eyeLookOutLeft = shapes.find(s => s.categoryName === 'eyeLookOutLeft')?.score || 0; 
              const eyeLookInRight = shapes.find(s => s.categoryName === 'eyeLookInRight')?.score || 0;
              const eyeLookOutRight = shapes.find(s => s.categoryName === 'eyeLookOutRight')?.score || 0;
              
-             // If eyes are looking too far sideways
              const isLookingLeft = eyeLookInLeft > 0.5 || eyeLookOutRight > 0.5;
              const isLookingRight = eyeLookOutLeft > 0.5 || eyeLookInRight > 0.5;
              
              if (isLookingLeft || isLookingRight) {
                  setIsLookingAway(true);
-                 // Throttle warning increment
-                 setWarningCount(c => Math.min(c + 0.05, 5)); // Float to act as debounce
+                 setWarningCount(c => Math.min(c + 0.05, 5));
              } else {
                  setIsLookingAway(false);
+             }
+
+             // --- Metric Accumulation ---
+             if (!isSubmitting) {
+                samplesCount.current += 1;
+                
+                // 1. Eye Contact Accumulation
+                if (isLookingLeft || isLookingRight) {
+                    lookingAwayCount.current += 1;
+                }
+
+                // 2. Head Stability (using Facial Transformation Matrix if available)
+                if (result.facialTransformationMatrixes && result.facialTransformationMatrixes.length > 0) {
+                    const matrix = result.facialTransformationMatrixes[0].data; // Float32Array(16)
+                    
+                    if (lastHeadMatrix.current) {
+                        // Describe rotation difference approx
+                        // Full Euler extraction is complex, using cosine distance of Forward vector (Z-axis) as proxy
+                        // Column 2 (index 8, 9, 10) is Z-axis vector in column-major
+                        // Row 2 (indices 8,9,10) is Z-axis in row-major?
+                        // MediaPipe docs say "column-major".
+                        // Let's us sum of abs diff of Rotation Matrix (3x3 top left) elements
+                        let delta = 0;
+                        for(let i=0; i<3; i++) { // Cols
+                           for(let j=0; j<3; j++) { // Rows
+                               delta += Math.abs(matrix[i*4 + j] - lastHeadMatrix.current[i*4 + j]);
+                           }
+                        }
+                        totalHeadDelta.current += delta;
+                    }
+                    lastHeadMatrix.current = Array.from(matrix);
+                }
              }
           }
        }
@@ -138,10 +177,59 @@ export const InterviewSession: React.FC = () => {
     setTimeLeft(90);
     setAnswer("");
     setIsSubmitting(false);
+    setWarningCount(0);
+    
+    // Reset Metrics
+    samplesCount.current = 0;
+    lookingAwayCount.current = 0;
+    totalHeadDelta.current = 0;
+    lastHeadMatrix.current = null;
   }, [currentQuestionIndex]);
+
+  const calculateMetrics = () => {
+    const total = samplesCount.current || 1;
+    const eyeContactRatio = 1 - (lookingAwayCount.current / total);
+    // Simple normalization for head stability
+    const avgHeadDelta = totalHeadDelta.current / total;
+    // Map avgDelta to 0-100 score. Assuming avgDelta > 0.5 is very fidgety.
+    const headStabilityScore = Math.min(100, Math.max(0, 100 - (avgHeadDelta * 200))); 
+    const eyeContactScore = Math.min(100, Math.max(0, eyeContactRatio * 100));
+
+    const overall = (0.6 * eyeContactScore) + (0.4 * headStabilityScore);
+
+    return {
+       eye_contact_score: Math.round(eyeContactScore),
+       head_stability_score: Math.round(headStabilityScore),
+       overall_confidence: Math.round(overall),
+       metrics_detail: {
+           total_frames: total,
+           looking_away_frames: lookingAwayCount.current,
+           avg_head_delta: avgHeadDelta
+       }
+    };
+  };
 
   const handleAutoSubmit = () => {
       handleSubmit(true); 
+  };
+
+  const handleAudioStop = async (audioBlob: Blob) => {
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+    
+    try {
+        const metrics = calculateMetrics();
+        await api.sendAudioAnswer(sessionId || "", audioBlob, metrics);
+        setAnswer("(Voice Answer Submitted)"); 
+        // Ideally, we'd sync state properly, but a reload works for MVP
+        window.location.reload(); 
+    } catch (e: any) {
+        console.error(e);
+        const msg = e.response?.data?.detail || e.message || "Unknown error";
+        alert("Voice submission failed: " + msg);
+    } finally {
+        setIsSubmitting(false);
+    }
   };
 
   const handleSubmit = async (auto = false) => {
@@ -154,7 +242,24 @@ export const InterviewSession: React.FC = () => {
         await new Promise(resolve => setTimeout(resolve, 500));
     }
     
-    submitAnswer(answer); 
+    const metrics = calculateMetrics();
+    submitAnswer(answer, metrics); 
+  };
+  
+  const handleManualEnd = async () => {
+      if (confirm("Are you sure you want to end the interview now?")) {
+          setIsSubmitting(true);
+          try {
+              if (sessionId) {
+                  await api.endInterview(sessionId);
+                  window.location.reload(); 
+              }
+          } catch(e) {
+              console.error(e);
+              alert("Failed to end interview");
+              setIsSubmitting(false);
+          }
+      }
   };
 
   // Helper for auto-submit
@@ -204,6 +309,16 @@ export const InterviewSession: React.FC = () => {
              </div>
 
             <div className="flex items-center gap-6">
+                 {/* End Interview Button */}
+                 <button
+                    onClick={handleManualEnd}
+                    className="hidden md:flex items-center gap-2 px-3 py-1 bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded-full transition-colors border border-red-500/20"
+                    title="End Interview"
+                 >
+                    <XCircle size={18} />
+                    <span className="text-sm font-bold">End</span>
+                 </button>
+
                  {/* Visualizer when speaking */}
                  <div className="hidden md:block w-32 h-10">
                      {stream && <AudioVisualizer stream={stream} isSpeaking={isMicOn} />}
@@ -310,7 +425,12 @@ export const InterviewSession: React.FC = () => {
                       <span className="text-xs text-slate-400">
                           {answer.length} characters
                       </span>
-                      <Button 
+                      <div className="flex items-center gap-3">
+                        <AudioRecorder 
+                            onAudioStop={handleAudioStop} 
+                            isProcessing={isSubmitting} 
+                        />
+                        <Button 
                          onClick={() => handleSubmit(false)} 
                          isLoading={isSubmitting}
                          disabled={!answer.trim() || isSubmitting}
@@ -319,6 +439,12 @@ export const InterviewSession: React.FC = () => {
                      >
                          Submit Answer
                       </Button>
+                      {isSubmitting && (
+                          <p className="text-xs text-center text-indigo-500 animate-pulse mt-2">
+                              AI is analyzing your answer... Please wait.
+                          </p>
+                      )}
+                      </div>
                  </div>
              </Card>
         </div>

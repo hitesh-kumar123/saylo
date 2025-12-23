@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
-from app.api.endpoints import interview
+from app.api.endpoints import interview, auth
 
 app = FastAPI(
     title="SayLO AI Backend",
@@ -21,6 +21,7 @@ app.add_middleware(
 )
 
 app.include_router(interview.router, prefix="/api/interview", tags=["interview"])
+app.include_router(auth.router, prefix="/api/auth", tags=["auth"])
 
 @app.get("/health")
 async def health_check():

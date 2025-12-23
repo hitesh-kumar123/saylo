@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { User } from "../types";
-import { LocalDataService } from "../services/localDataService";
+import { api } from "../services/api";
 
 interface AuthState {
   user: User | null;
@@ -25,21 +25,27 @@ export const useAuthStore = create<AuthState>((set) => ({
   login: async (email, password) => {
     set({ isLoading: true, error: null });
     try {
-      const { user, token } = await LocalDataService.login(email, password);
-
-      // Store token in localStorage and state
-      localStorage.setItem("token", token);
+      const { access_token } = await api.auth.login(email, password);
+      
+      localStorage.setItem("token", access_token);
+      
+      // Fetch user details immediately
+      // The interceptor will pick up the new token from localStorage? 
+      // Wait, api.ts interceptor reads localStorage. So yes.
+      // But we might need to await a tick? No, sync.
+      
+      const user = await api.auth.me();
 
       set({
         user,
         isAuthenticated: true,
         isLoading: false,
-        token,
+        token: access_token,
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Login error:", error);
       set({
-        error: error instanceof Error ? error.message : "Login failed",
+        error: error.response?.data?.detail || "Login failed. Check your credentials.",
         isLoading: false,
       });
     }
@@ -48,24 +54,26 @@ export const useAuthStore = create<AuthState>((set) => ({
   register: async (name, email, password) => {
     set({ isLoading: true, error: null });
     try {
-      const { user, token } = await LocalDataService.register(
-        name,
-        email,
-        password
-      );
+      // 1. Register
+      await api.auth.register(email, password); // Name is ignored for now by backend, or we should add it
 
-      // Store token in localStorage and state
-      localStorage.setItem("token", token);
+      // 2. Login automatically
+      const { access_token } = await api.auth.login(email, password);
+      localStorage.setItem("token", access_token);
+
+      // 3. Fetch user
+      const user = await api.auth.me();
 
       set({
         user,
         isAuthenticated: true,
         isLoading: false,
-        token,
+        token: access_token,
       });
-    } catch (error) {
+    } catch (error: any) {
+      console.error("Registration error:", error);
       set({
-        error: error instanceof Error ? error.message : "Registration failed",
+        error: error.response?.data?.detail || "Registration failed. Try a different email.",
         isLoading: false,
       });
     }
@@ -74,6 +82,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   logout: () => {
     localStorage.removeItem("token");
     set({ user: null, isAuthenticated: false, token: null });
+    // Optional: Redirect to login
   },
 
   clearError: () => set({ error: null }),
@@ -87,7 +96,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     }
 
     try {
-      const user = await LocalDataService.verifyToken(token);
+      const user = await api.auth.me();
       set({
         isAuthenticated: true,
         user,

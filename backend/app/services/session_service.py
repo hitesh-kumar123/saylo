@@ -141,6 +141,7 @@ class SessionService:
                     "role": i.role,
                     "difficulty": i.difficulty,
                     "start_time": i.start_time.isoformat() if i.start_time else None,
+                    "end_time": i.end_time.isoformat() if i.end_time else None,
                     "feedback": i.overall_feedback
                 }
                 for i in interviews

@@ -61,14 +61,14 @@ export const ProfilePage: React.FC = () => {
               <div className="relative z-10">
                 <div className="w-24 h-24 mx-auto rounded-full bg-gradient-to-br from-primary-500 to-secondary-500 p-1 mb-4 shadow-xl shadow-primary-500/20">
                   <div className="w-full h-full rounded-full bg-white dark:bg-slate-900 flex items-center justify-center text-3xl font-bold text-slate-800 dark:text-white relative group cursor-pointer">
-                    {user.name.charAt(0).toUpperCase()}
+                    {(user.name || user.email || "U").charAt(0).toUpperCase()}
                     <div className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                       <Camera size={20} className="text-white" />
                     </div>
                   </div>
                 </div>
                 
-                <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-1">{user.name}</h2>
+                <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-1">{user.name || user.email.split('@')[0]}</h2>
                 <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">{user.email}</p>
                 
                 <div className="flex justify-center gap-2 mb-6">

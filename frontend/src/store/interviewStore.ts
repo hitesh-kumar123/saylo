@@ -172,26 +172,8 @@ export const useInterviewStore = create<InterviewState>((set, get) => ({
   fetchSessions: async () => {
     try {
         set({ isLoading: true });
-        const sessionsData = await api.getSessions();
-        
-        // Map backend data to frontend model
-        const formattedSessions: InterviewSession[] = sessionsData.map((s: any) => ({
-            id: s.id,
-            userId: 'user-1', // Placeholder as backend doesn't return user yet
-            jobTitle: `${s.role} Developer`, 
-            startTime: s.start_time,
-            endTime: s.end_time,
-            // duration, score, status removed as they are not in InterviewSession type
-            feedback: s.feedback ? {
-                overallScore: 8, // Mock score since backend only gives text feedback currently
-                strengths: ['Communication', 'Clarity'], // Mock strengths
-                weaknesses: [],
-                detailedFeedback: s.feedback,
-                recommendations: []
-            } : undefined
-        }));
-
-        set({ sessions: formattedSessions, isLoading: false });
+        const sessionsData = await api.getSessions(); // Now returns InterviewSession[]
+        set({ sessions: sessionsData, isLoading: false });
     } catch (err) {
         console.error("Failed to fetch sessions:", err);
         set({ error: "Failed to load history", isLoading: false });

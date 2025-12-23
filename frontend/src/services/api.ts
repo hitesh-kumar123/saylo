@@ -1,10 +1,37 @@
 import axios from "axios";
 
-const API_URL = "http://localhost:8000/api";
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000/api";
+
+const apiClient = axios.create({
+    baseURL: API_URL
+});
+
+apiClient.interceptors.request.use((config) => {
+    const token = localStorage.getItem('token');
+    if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+});
 
 export const api = {
+  auth: {
+      login: async (email: string, password: string) => {
+          const response = await apiClient.post("/auth/login", { email, password });
+          return response.data;
+      },
+      register: async (email: string, password: string) => {
+          const response = await apiClient.post("/auth/register", { email, password });
+          return response.data;
+      },
+      me: async () => {
+          const response = await apiClient.get("/auth/me");
+          return response.data;
+      }
+  },
+
   startInterview: async (role: string, difficulty: string, topic: string = "General") => {
-    const response = await axios.post(`${API_URL}/interview/start`, {
+    const response = await apiClient.post(`/interview/start`, {
       role,
       difficulty,
       topic,
@@ -13,7 +40,7 @@ export const api = {
   },
 
   submitAnswer: async (sessionId: string, answer: string, metrics?: any) => {
-    const response = await axios.post(`${API_URL}/interview/chat`, {
+    const response = await apiClient.post(`/interview/chat`, {
       session_id: sessionId,
       answer,
       non_verbal_metrics: metrics,
@@ -22,8 +49,40 @@ export const api = {
   },
 
   getSessions: async () => {
-    const response = await axios.get(`${API_URL}/interview/history`);
-    return response.data;
+    const response = await apiClient.get(`/interview/history`);
+    return response.data.map((session: any) => {
+        let feedbackObj = undefined;
+        if (session.feedback) {
+            try {
+                const parsed = JSON.parse(session.feedback);
+                feedbackObj = {
+                    overallScore: parsed.overall_score || 0,
+                    strengths: parsed.strengths || [],
+                    weaknesses: parsed.weaknesses || [],
+                    detailedFeedback: parsed.final_verdict || "No verdict provided.",
+                    recommendations: parsed.improvement_tips || []
+                };
+            } catch (e) {
+                console.error("Failed to parse feedback JSON", e);
+                feedbackObj = {
+                   overallScore: 0,
+                   strengths: [],
+                   weaknesses: [],
+                   detailedFeedback: session.feedback || "Raw feedback not parsing",
+                   recommendations: [] 
+                };
+            }
+        }
+
+        return {
+            id: session.id,
+            userId: "user-1", // Mock
+            startTime: session.start_time,
+            endTime: session.end_time || undefined,
+            jobTitle: session.role,
+            feedback: feedbackObj
+        };
+    });
   },
 
   sendAudioAnswer: async (sessionId: string, audioBlob: Blob, metrics?: any) => {
@@ -34,12 +93,12 @@ export const api = {
         formData.append("non_verbal_metrics", JSON.stringify(metrics));
     }
 
-    const response = await axios.post(`${API_URL}/interview/audio-chat`, formData);
+    const response = await apiClient.post(`/interview/audio-chat`, formData);
     return response.data; // { feedback, next_question, is_completed }
   },
 
   endInterview: async (sessionId: string) => {
-    const response = await axios.post(`${API_URL}/interview/end`, {
+    const response = await apiClient.post(`/interview/end`, {
         session_id: sessionId
     });
     return response.data;

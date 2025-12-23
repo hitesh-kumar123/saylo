@@ -17,9 +17,9 @@ export const LoginPage: React.FC = () => {
           <LoginForm onSuccess={handleLoginSuccess} />
           
           <p className="mt-6 text-center text-sm text-slate-600 dark:text-slate-400">
-            Already have an account?{' '}
-            <Link to="/login" className="font-medium text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 transition-colors">
-              Sign in
+            Don't have an account?{' '}
+            <Link to="/register" className="font-medium text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 transition-colors">
+              Sign up
             </Link>
           </p>
         </div>

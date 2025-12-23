@@ -30,3 +30,4 @@ __pycache__/
 
 # AI Models (Ignore all large model files)
 backend/models/*.gguf
+backend/models/*.exe

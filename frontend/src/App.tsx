@@ -11,6 +11,7 @@ import { RegisterPage } from "./pages/RegisterPage";
 import { DashboardPage } from "./pages/DashboardPage";
 import { InterviewPage } from "./pages/InterviewPage";
 import { InterviewFeedbackPage } from "./pages/InterviewFeedbackPage";
+import { InterviewHistoryPage } from "./pages/InterviewHistoryPage";
 import { ResumePage } from "./pages/ResumePage";
 import { CareerPage } from "./pages/CareerPage";
 import { ProfilePage } from "./pages/ProfilePage";
@@ -100,6 +101,15 @@ function App() {
           element={
             <ProtectedRoute>
               <InterviewFeedbackPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/interview/history"
+          element={
+            <ProtectedRoute>
+              <InterviewHistoryPage />
             </ProtectedRoute>
           }
         />

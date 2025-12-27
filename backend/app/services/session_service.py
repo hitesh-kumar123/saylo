@@ -131,6 +131,22 @@ class SessionService:
         finally:
             db.close()
 
+    def update_last_answer_score(self, session_id: str, score: float):
+        db = self.get_db()
+        try:
+            # Find the latest answer for this session
+            # We assume the answer was just added
+            last_question = db.query(Question)\
+                .filter(Question.interview_id == session_id)\
+                .order_by(Question.order.desc())\
+                .first()
+            
+            if last_question and last_question.answer:
+                last_question.answer.ai_score = score
+                db.commit()
+        finally:
+            db.close()
+
     def get_all_sessions(self):
         db = self.get_db()
         try:

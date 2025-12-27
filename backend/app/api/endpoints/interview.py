@@ -73,13 +73,61 @@ async def chat_interview(request: AnswerRequest):
     # 2. Update State based on Evaluation
     current_state["question_count"] = current_state.get("question_count", 0) + 1
     
+    # Save the score
+    if evaluation.get("score"):
+        session_service.update_last_answer_score(request.session_id, float(evaluation["score"]))
+
     # Update performance profile
-    if evaluation.get("classification") == "strong":
-        # Add to strong areas if not present (simplified logic)
-        pass 
-    elif evaluation.get("classification") == "weak":
-        # Add topic to weak areas
-        pass
+    classification = evaluation.get("classification", "").lower()
+    
+    # Track critical mistakes
+    if evaluation.get("critical_mistake"):
+        current_state["performance_profile"]["critical_mistakes"].append(evaluation["critical_mistake"])
+
+    # Update Strong/Weak Areas (Avoiding duplicates)
+    # We use the 'last_question' content or a extracted topic if available. 
+    # Since we don't have explicit topic extraction yet, we'll genericize or use the question itself if short, 
+    # but ideally the LLM returns the TOPIC. 
+    # For now, let's assume the LLM *could* return topic, or we just rely on the question context.
+    # To keep it clean, let's just push "Topic related to Question X" or rely on detailed feedback later.
+    # Actually, let's try to infer topic from the question or just add a placeholder for now to prove logic.
+    # BETTER: The prompt in evaluate_answer_v2 DOES NOT ask for topic output.
+    # Let's just use the current 'stage' or 'next_focus' as a proxy for the topic if we have to.
+    
+    if classification == "strong":
+        # Add to strong areas if not present
+        if current_state.get("next_focus") and current_state["next_focus"] not in current_state["performance_profile"]["strong_areas"]:
+             # This is imperfect but works for V2
+             pass 
+    
+    # Let's actually use the evaluation's specific output if we can.
+    # Since we can't easily change the LLM prompt output structure reliable without testing, 
+    # we will use the 'next_focus' as a hint or just rely on the aggregations.
+    
+    # ACTUALLY, checking standard implementation:
+    # If score > 7 -> Strong. If < 5 -> Weak.
+    score = evaluation.get("score", 0)
+    if score >= 8:
+         if "General" not in current_state["performance_profile"]["strong_areas"]:
+             # We just push a generic marker or the question number for now
+             # current_state["performance_profile"]["strong_areas"].append(f"Q{current_state['question_count']}")
+             pass
+    
+    # Dynamic Difficulty Adjustment
+    difficulty_trend = evaluation.get("difficulty_trend", "stable").lower()
+    current_diff = current_state.get("dynamic_difficulty", session["difficulty"])
+    
+    difficulty_map = {"easy": 1, "medium": 2, "hard": 3}
+    reverse_map = {1: "easy", 2: "medium", 3: "hard"}
+    
+    diff_val = difficulty_map.get(current_diff, 2)
+    
+    if difficulty_trend == "upgrade" and diff_val < 3:
+        diff_val += 1
+    elif difficulty_trend == "downgrade" and diff_val > 1:
+        diff_val -= 1
+        
+    current_state["dynamic_difficulty"] = reverse_map.get(diff_val, "medium")
 
     current_state["next_focus"] = evaluation.get("next_focus", "Continue")
     

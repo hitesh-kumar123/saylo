@@ -7,7 +7,7 @@ import { PageLayout } from "../components/layout/PageLayout";
 import { useAuthStore } from "../store/authStore";
 
 export const LandingPage: React.FC = () => {
-  const { isAuthenticated, logout } = useAuthStore();
+  const { isAuthenticated } = useAuthStore();
 
   const features = [
     {
@@ -59,9 +59,11 @@ export const LandingPage: React.FC = () => {
           </Link>
           <div className="flex items-center gap-4">
             {isAuthenticated ? (
-              <Button variant="outline" size="sm" onClick={logout} className="glass text-slate-900 dark:text-white border-slate-200 dark:border-white/20 hover:bg-slate-100 dark:hover:bg-white/10">
-                Logout
-              </Button>
+              <Link to="/dashboard">
+                <Button variant="primary" size="sm" className="bg-primary-600 hover:bg-primary-500 text-white shadow-lg shadow-primary-600/20">
+                  Dashboard
+                </Button>
+              </Link>
             ) : (
               <>
                 <Link to="/login">

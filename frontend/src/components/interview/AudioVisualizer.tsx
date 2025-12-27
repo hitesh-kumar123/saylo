@@ -10,7 +10,7 @@ export const AudioVisualizer: React.FC<{
   const sourceRef = useRef<MediaStreamAudioSourceNode>();
 
   useEffect(() => {
-    if (!stream || !canvasRef.current) return;
+    if (!stream || !canvasRef.current || stream.getAudioTracks().length === 0) return;
 
     const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
     const analyser = audioContext.createAnalyser();

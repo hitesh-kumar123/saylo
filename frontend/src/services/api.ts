@@ -60,7 +60,8 @@ export const api = {
                     strengths: parsed.strengths || [],
                     weaknesses: parsed.weaknesses || [],
                     detailedFeedback: parsed.final_verdict || "No verdict provided.",
-                    recommendations: parsed.improvement_tips || []
+                    recommendations: parsed.improvement_tips || [],
+                    metrics: parsed.metrics || undefined // Extract metrics
                 };
             } catch (e) {
                 console.error("Failed to parse feedback JSON", e);
@@ -80,7 +81,8 @@ export const api = {
             startTime: session.start_time,
             endTime: session.end_time || undefined,
             jobTitle: session.role,
-            feedback: feedbackObj
+            feedback: feedbackObj,
+            metrics: feedbackObj?.metrics // Map metrics to top level
         };
     });
   },

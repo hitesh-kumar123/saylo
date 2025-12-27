@@ -18,6 +18,9 @@ import {
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { InterviewSession, InterviewFeedback, InterviewMetrics } from "../types";
+import { 
+  Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer, Tooltip
+} from 'recharts';
 
 export const InterviewFeedbackPage: React.FC = () => {
   const navigate = useNavigate();
@@ -189,45 +192,78 @@ export const InterviewFeedbackPage: React.FC = () => {
           </motion.div>
         )}
 
-        {/* Performance Metrics */}
+        {/* Performance Metrics with Radar Chart */}
         {metrics && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, delay: 0.4 }}
           >
-            <Card title="Performance Metrics" icon={<BarChart3 className="h-5 w-5 text-primary-600" />}>
-              <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                <MetricCard
-                  icon={<Eye className="h-5 w-5" />}
-                  label="Eye Contact"
-                  value={metrics.eyeContact}
-                  color="text-blue-600"
-                />
-                <MetricCard
-                  icon={<User className="h-5 w-5" />}
-                  label="Confidence"
-                  value={metrics.confidence}
-                  color="text-purple-600"
-                />
-                <MetricCard
-                  icon={<MessageSquare className="h-5 w-5" />}
-                  label="Clarity"
-                  value={metrics.clarity}
-                  color="text-green-600"
-                />
-                <MetricCard
-                  icon={<Smile className="h-5 w-5" />}
-                  label="Enthusiasm"
-                  value={metrics.enthusiasm}
-                  color="text-yellow-600"
-                />
-                <MetricCard
-                  icon={<TrendingUp className="h-5 w-5" />}
-                  label="Posture"
-                  value={metrics.posture}
-                  color="text-orange-600"
-                />
+            <Card title="Performance Analysis" icon={<BarChart3 className="h-5 w-5 text-primary-600" />}>
+              <div className="flex flex-col md:flex-row gap-8 items-center">
+                  
+                  {/* Radar Chart */}
+                  <div className="w-full md:w-1/2 h-[300px] flex justify-center items-center min-w-[300px]">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <RadarChart cx="50%" cy="50%" outerRadius="70%" data={[
+                            { subject: 'Eye Contact', A: (metrics.eyeContact || 0) * 10, fullMark: 100 },
+                            { subject: 'Confidence', A: (metrics.confidence || 0) * 10, fullMark: 100 },
+                            { subject: 'Clarity', A: (metrics.clarity || 0) * 10, fullMark: 100 },
+                            { subject: 'Enthusiasm', A: (metrics.enthusiasm || 0) * 10, fullMark: 100 },
+                            { subject: 'Posture', A: (metrics.posture || 0) * 10, fullMark: 100 },
+                        ]}>
+                          <PolarGrid stroke="#cbd5e1" />
+                          <PolarAngleAxis dataKey="subject" tick={{ fill: '#475569', fontSize: 12, fontWeight: 600 }} />
+                          <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
+                          <Radar
+                            name="You"
+                            dataKey="A"
+                            stroke="#4f46e5"
+                            strokeWidth={3}
+                            fill="#6366f1"
+                            fillOpacity={0.6}
+                          />
+                          <Tooltip 
+                            contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                            itemStyle={{ color: '#4f46e5', fontWeight: 'bold' }}
+                          />
+                        </RadarChart>
+                      </ResponsiveContainer>
+                  </div>
+
+                  {/* Metrics Grid */}
+                  <div className="w-full md:w-1/2 grid grid-cols-2 gap-4">
+                    <MetricCard
+                      icon={<Eye className="h-5 w-5" />}
+                      label="Eye Contact"
+                      value={metrics.eyeContact}
+                      color="text-blue-600"
+                    />
+                    <MetricCard
+                      icon={<User className="h-5 w-5" />}
+                      label="Confidence"
+                      value={metrics.confidence}
+                      color="text-purple-600"
+                    />
+                    <MetricCard
+                      icon={<MessageSquare className="h-5 w-5" />}
+                      label="Clarity"
+                      value={metrics.clarity}
+                      color="text-green-600"
+                    />
+                    <MetricCard
+                      icon={<Smile className="h-5 w-5" />}
+                      label="Enthusiasm"
+                      value={metrics.enthusiasm}
+                      color="text-yellow-600"
+                    />
+                    <MetricCard
+                      icon={<TrendingUp className="h-5 w-5" />}
+                      label="Posture"
+                      value={metrics.posture}
+                      color="text-orange-600"
+                    />
+                  </div>
               </div>
             </Card>
           </motion.div>

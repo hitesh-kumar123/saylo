@@ -5,9 +5,14 @@ import { Card } from '../components/ui/Card';
 import { BarChart2, CheckCircle, RefreshCw, Award, TrendingUp, AlertTriangle } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useInterviewStore } from '../store/interviewStore';
+import { 
+  Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer, Tooltip
+} from 'recharts';
+import { InterviewMetrics } from '../types';
 
 export const InterviewCompletionPage: React.FC = () => {
-    const { currentSession, resetInterview, questions } = useInterviewStore();
+    const { sessions, sessionId, resetInterview, questions } = useInterviewStore();
+    const currentSession = sessions.find(s => s.id === sessionId);
     const [showFeedback, setShowFeedback] = useState(false);
 
     // Use feedback data from store or fallbacks
@@ -68,40 +73,54 @@ export const InterviewCompletionPage: React.FC = () => {
                              <p className="text-slate-600 dark:text-slate-400">Session ID: {currentSession?.id.slice(0, 8)}</p>
                         </div>
                         
-                        {/* Scores Grid */}
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                             {/* Overall Score */}
-                             <Card className="flex flex-col items-center justify-center p-6 border-t-4 border-t-blue-500">
-                                 <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-full mb-4">
-                                     <Award className="w-8 h-8 text-blue-500" />
-                                 </div>
-                                 <span className="text-4xl font-bold text-slate-900 dark:text-white mb-1">
-                                     {feedback.overallScore ? Math.round(feedback.overallScore) : 0}<span className="text-xl text-slate-400">/10</span>
-                                 </span>
-                                 <span className="text-sm font-medium text-slate-500 uppercase tracking-wide">Overall Score</span>
-                             </Card>
+                        {/* Charts Section */}
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center bg-white dark:bg-dark-900 rounded-xl p-6 shadow-sm border border-gray-100 dark:border-dark-700">
+                             
+                             {/* Radar Chart */}
+                             <div className="h-[300px] w-full flex justify-center items-center">
+                                 <ResponsiveContainer width="100%" height="100%">
+                                    <RadarChart cx="50%" cy="50%" outerRadius="70%" data={[
+                                        { subject: 'Eye Contact', A: (currentSession?.metrics?.eyeContact || 0) * 10, fullMark: 100 },
+                                        { subject: 'Confidence', A: (currentSession?.metrics?.confidence || 0) * 10, fullMark: 100 },
+                                        { subject: 'Clarity', A: (currentSession?.metrics?.clarity || 0) * 10, fullMark: 100 },
+                                        { subject: 'Enthusiasm', A: (currentSession?.metrics?.enthusiasm || 0) * 10, fullMark: 100 },
+                                        { subject: 'Posture', A: (currentSession?.metrics?.posture || 0) * 10, fullMark: 100 },
+                                    ]}>
+                                      <PolarGrid stroke="#cbd5e1" />
+                                      <PolarAngleAxis dataKey="subject" tick={{ fill: '#64748b', fontSize: 12, fontWeight: 600 }} />
+                                      <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
+                                      <Radar
+                                        name="You"
+                                        dataKey="A"
+                                        stroke="#4f46e5"
+                                        strokeWidth={3}
+                                        fill="#6366f1"
+                                        fillOpacity={0.5}
+                                      />
+                                      <Tooltip 
+                                        contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                                        itemStyle={{ color: '#4f46e5', fontWeight: 'bold' }}
+                                      />
+                                    </RadarChart>
+                                  </ResponsiveContainer>
+                             </div>
 
-                             {/* Communication - Mocked for visual */}
-                             <Card className="flex flex-col items-center justify-center p-6 border-t-4 border-t-purple-500">
-                                 <div className="bg-purple-50 dark:bg-purple-900/20 p-4 rounded-full mb-4">
-                                     <BarChart2 className="w-8 h-8 text-purple-500" />
+                             {/* Metrics Grid */}
+                             <div className="grid grid-cols-2 gap-4">
+                                 {/* Overall Score */}
+                                 <div className="col-span-2 bg-blue-50 dark:bg-blue-900/10 p-4 rounded-xl flex items-center justify-between">
+                                     <div>
+                                         <p className="text-sm text-blue-600 dark:text-blue-400 font-semibold uppercase">Overall Score</p>
+                                         <h3 className="text-3xl font-bold text-blue-700 dark:text-blue-300">{feedback.overallScore ? Math.round(feedback.overallScore) : 0}<span className="text-lg opacity-60">/10</span></h3>
+                                     </div>
+                                     <Award className="w-10 h-10 text-blue-500 opacity-80" />
                                  </div>
-                                 <span className="text-4xl font-bold text-slate-900 dark:text-white mb-1">
-                                     7<span className="text-xl text-slate-400">/10</span>
-                                 </span>
-                                 <span className="text-sm font-medium text-slate-500 uppercase tracking-wide">Communication</span>
-                             </Card>
 
-                            {/* Confidence - Mocked for visual */}
-                             <Card className="flex flex-col items-center justify-center p-6 border-t-4 border-t-green-500">
-                                 <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-full mb-4">
-                                     <TrendingUp className="w-8 h-8 text-green-500" />
-                                 </div>
-                                 <span className="text-4xl font-bold text-slate-900 dark:text-white mb-1">
-                                     8<span className="text-xl text-slate-400">/10</span>
-                                 </span>
-                                 <span className="text-sm font-medium text-slate-500 uppercase tracking-wide">Tech Clarity</span>
-                             </Card>
+                                 <MetricBox label="Eye Contact" value={currentSession?.metrics?.eyeContact} color="text-emerald-600" bg="bg-emerald-50" />
+                                 <MetricBox label="Confidence" value={currentSession?.metrics?.confidence} color="text-purple-600" bg="bg-purple-50" />
+                                 <MetricBox label="Clarity" value={currentSession?.metrics?.clarity} color="text-amber-600" bg="bg-amber-50" />
+                                 <MetricBox label="Enthusiasm" value={currentSession?.metrics?.enthusiasm} color="text-rose-600" bg="bg-rose-50" />
+                             </div>
                         </div>
 
                         {/* Analysis Sections */}
@@ -174,3 +193,10 @@ export const InterviewCompletionPage: React.FC = () => {
         </PageLayout>
     );
 };
+
+const MetricBox = ({ label, value, color, bg }: { label: string, value?: number, color: string, bg: string }) => (
+    <div className={`p-3 rounded-lg ${bg} dark:bg-opacity-10`}>
+        <p className="text-xs text-gray-500 dark:text-gray-400 uppercase font-semibold">{label}</p>
+        <p className={`text-xl font-bold ${color}`}>{value ? (value * 10).toFixed(0) : 0}%</p>
+    </div>
+);

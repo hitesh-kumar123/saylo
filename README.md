@@ -7,10 +7,9 @@ Clean, modular architecture with separated frontend and backend.
 ## Quick Links
 
 - **Frontend**: `frontend/src/main.tsx`
-- **Backend**: `backend/index.js`
-- **Frontend Dev**: `npm run dev`
-- **Backend Dev**: `npm run dev:backend`
-- **Both**: `npm run dev:all`
+- **Backend**: `backend/app/main.py`
+- **Frontend Dev**: `cd frontend && npm run dev`
+- **Backend Dev**: `cd backend && run_server.bat`
 
 ## Table of contents
 
@@ -38,6 +37,7 @@ Clean, modular architecture with separated frontend and backend.
 Prerequisites
 
 - Node.js v18+ (Node 20 recommended)
+- Python 3.10+
 - npm (or pnpm/yarn)
 
 Clone
@@ -49,8 +49,20 @@ cd saylo
 
 Install
 
+**Frontend:**
+
 ```powershell
+cd frontend
 npm install
+```
+
+**Backend:**
+
+```powershell
+cd backend
+python -m venv venv
+.\venv\Scripts\activate
+pip install -r requirements.txt
 ```
 
 Run locally (two terminals)
@@ -58,19 +70,15 @@ Run locally (two terminals)
 - Terminal A — start backend:
 
 ```powershell
-npm run dev:backend
+cd backend
+run_server.bat
 ```
 
 - Terminal B — start frontend:
 
 ```powershell
+cd frontend
 npm run dev
-```
-
-Or run both in one terminal:
-
-```powershell
-npm run dev:all
 ```
 
 Open http://localhost:5173 in browser. Backend API runs at `http://localhost:3001/api`.
@@ -135,14 +143,18 @@ saylo/
 │   │   └── types/             # TypeScript types
 │   └── package.json
 │
-├── backend/                   # Node/Express API
-│   ├── index.js               # Main entry point
-│   ├── config/                # Configuration files
-│   ├── middleware/            # Express middleware
-│   ├── routes/                # API endpoints
-│   ├── services/              # Business logic
-│   ├── utils/                 # Utilities & validators
-│   └── db/                    # Database (mock, replace with real)
+├── backend/                   # Python FastAPI
+│   ├── app/                   # App source
+│   │   ├── main.py            # Main entry point
+│   │   ├── api/               # API endpoints
+│   │   ├── core/              # Config & security
+│   │   ├── db/                # Database setup
+│   │   ├── models/            # SQLAlchemy models
+│   │   ├── schemas/           # Pydantic schemas
+│   │   └── services/          # Business logic
+│   ├── alembic/               # Database migrations
+│   ├── requirements.txt       # Python dependencies
+│   └── run_server.bat         # Start script
 │
 ├── docs/                      # Documentation
 ├── test/                      # Frontend tests

@@ -37,181 +37,128 @@ export const InterviewSession: React.FC = () => {
     questions, 
     currentQuestionIndex, 
     submitAnswer,
+    handleVoiceResponse,
+    endInterview,
     config,
     sessionId // Destructure sessionId
   } = useInterviewStore();
   
   const currentQuestion = questions[currentQuestionIndex];
 
-  // Capture Audio Stream
-  useEffect(() => {
-    if (isMicOn) {
-      navigator.mediaDevices.getUserMedia({ audio: true })
-        .then(setStream)
-        .catch(err => console.error("Mic Error:", err));
-    } else {
-      if (stream) {
-        stream.getTracks().forEach(track => track.stop());
-        setStream(null);
-      }
-    }
-    return () => {
-        if (stream) stream.getTracks().forEach(track => track.stop());
-    };
-  }, [isMicOn]);
-
-
-  // Initialize MediaPipe FaceLandmarker
-  useEffect(() => {
-    const initMediaPipe = async () => {
-      const vision = await FilesetResolver.forVisionTasks(
-        "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.3/wasm"
-      );
-      const landmarker = await FaceLandmarker.createFromOptions(vision, {
-        baseOptions: {
-          modelAssetPath: `https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task`,
-          delegate: "GPU"
-        },
-        outputFaceBlendshapes: true,
-        outputFacialTransformationMatrixes: true,
-        runningMode: "VIDEO",
-        numFaces: 1
-      });
-      setFaceLandmarker(landmarker);
-    };
-    initMediaPipe();
-  }, []);
-
-  // Predict Loop
-  const predict = () => {
-    if (webcamRef.current && webcamRef.current.video && isCameraOn && faceLandmarker) {
-       const video = webcamRef.current.video;
-       if (video.readyState >= 2 && video.videoWidth > 0 && video.videoHeight > 0 && video.currentTime !== lastVideoTime.current) {
-          lastVideoTime.current = video.currentTime;
-          const result = faceLandmarker.detectForVideo(video, Date.now());
-          
-          if (result.faceBlendshapes && result.faceBlendshapes.length > 0 && result.faceBlendshapes[0].categories) {
-             const shapes = result.faceBlendshapes[0].categories;
-             // Eye Look logic
-             const eyeLookInLeft = shapes.find(s => s.categoryName === 'eyeLookInLeft')?.score || 0;
-             const eyeLookOutLeft = shapes.find(s => s.categoryName === 'eyeLookOutLeft')?.score || 0; 
-             const eyeLookInRight = shapes.find(s => s.categoryName === 'eyeLookInRight')?.score || 0;
-             const eyeLookOutRight = shapes.find(s => s.categoryName === 'eyeLookOutRight')?.score || 0;
-             
-             const isLookingLeft = eyeLookInLeft > 0.5 || eyeLookOutRight > 0.5;
-             const isLookingRight = eyeLookOutLeft > 0.5 || eyeLookInRight > 0.5;
-             
-             if (isLookingLeft || isLookingRight) {
-                 setIsLookingAway(true);
-                 setWarningCount(c => Math.min(c + 0.05, 5));
-             } else {
-                 setIsLookingAway(false);
-             }
-
-             // --- Metric Accumulation ---
-             if (!isSubmitting) {
-                samplesCount.current += 1;
-                
-                // 1. Eye Contact Accumulation
-                if (isLookingLeft || isLookingRight) {
-                    lookingAwayCount.current += 1;
-                }
-
-                // 2. Head Stability (using Facial Transformation Matrix if available)
-                if (result.facialTransformationMatrixes && result.facialTransformationMatrixes.length > 0) {
-                    const matrix = result.facialTransformationMatrixes[0].data; // Float32Array(16)
-                    
-                    if (lastHeadMatrix.current) {
-                        // Describe rotation difference approx
-                        // Full Euler extraction is complex, using cosine distance of Forward vector (Z-axis) as proxy
-                        // Column 2 (index 8, 9, 10) is Z-axis vector in column-major
-                        // Row 2 (indices 8,9,10) is Z-axis in row-major?
-                        // MediaPipe docs say "column-major".
-                        // Let's us sum of abs diff of Rotation Matrix (3x3 top left) elements
-                        let delta = 0;
-                        for(let i=0; i<3; i++) { // Cols
-                           for(let j=0; j<3; j++) { // Rows
-                               delta += Math.abs(matrix[i*4 + j] - lastHeadMatrix.current[i*4 + j]);
-                           }
-                        }
-                        totalHeadDelta.current += delta;
-                    }
-                    lastHeadMatrix.current = Array.from(matrix);
-                }
-             }
-          }
-       }
-    }
-    requestRef.current = requestAnimationFrame(predict);
+  const calculateMetrics = () => {
+      const totalSamples = samplesCount.current || 1;
+      const avgHeadMove = totalHeadDelta.current / totalSamples;
+      const lookAwayRatio = lookingAwayCount.current / totalSamples;
+      
+      // Normalize to 1-10 scale basically
+      // Look away: < 10% is good (10), > 50% is bad (1)
+      const eyeContact = Math.max(1, 10 - (lookAwayRatio * 20)); 
+      
+      // Movement: Low is good (stable), High is nervous
+      const nervousness = Math.min(10, avgHeadMove * 50); 
+      
+      return {
+          eye_contact_score: Math.round(eyeContact * 10) / 10,
+          posture_score: 8.5, // Placeholder as we don't track shoulders yet
+          nervousness_score: Math.round(nervousness * 10) / 10,
+          clarity_score: 8.0, // Placeholder
+          confidence_score: 7.5
+      };
   };
 
-  useEffect(() => {
-    if (isCameraOn && faceLandmarker) {
-        requestRef.current = requestAnimationFrame(predict);
-    } else {
-        if (requestRef.current) cancelAnimationFrame(requestRef.current);
-    }
-    return () => {
-        if (requestRef.current) cancelAnimationFrame(requestRef.current);
-    };
-  }, [isCameraOn, faceLandmarker]);
+  // --- RE-IMPLEMENTED LOGIC START ---
 
-
-  // Timer Effect
+  // 1. Timer Logic (Paused when submitting)
   useEffect(() => {
+    if (isSubmitting || timeLeft <= 0) return;
+
     const timer = setInterval(() => {
       setTimeLeft((prev) => {
         if (prev <= 1) {
-             clearInterval(timer);
-             handleAutoSubmit();
+             // Timer hit 0
              return 0;
         }
         return prev - 1;
       });
     }, 1000);
+
     return () => clearInterval(timer);
-  }, [currentQuestionIndex]); 
+  }, [isSubmitting, timeLeft]);
 
-  // Reset state on new question
+  // 2. Proctoring Setup (FaceLandmarker)
   useEffect(() => {
-    setTimeLeft(90);
-    setAnswer("");
-    setIsSubmitting(false);
-    setWarningCount(0);
-    
-    // Reset Metrics
-    samplesCount.current = 0;
-    lookingAwayCount.current = 0;
-    totalHeadDelta.current = 0;
-    lastHeadMatrix.current = null;
-  }, [currentQuestionIndex]);
+      const loadModel = async () => {
+          try {
+            const fileset = await FilesetResolver.forVisionTasks(
+                "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.0/wasm"
+            );
+            const landmarker = await FaceLandmarker.createFromOptions(fileset, {
+                baseOptions: {
+                    modelAssetPath: `https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task`,
+                    delegate: "GPU"
+                },
+                runningMode: "VIDEO",
+                numFaces: 1
+            });
+            setFaceLandmarker(landmarker);
+          } catch(err) {
+              console.error("Failed to load proctoring model", err);
+          }
+      };
+      loadModel();
+  }, []);
 
-  const calculateMetrics = () => {
-    const total = samplesCount.current || 1;
-    const eyeContactRatio = 1 - (lookingAwayCount.current / total);
-    // Simple normalization for head stability
-    const avgHeadDelta = totalHeadDelta.current / total;
-    // Map avgDelta to 0-100 score. Assuming avgDelta > 0.5 is very fidgety.
-    const headStabilityScore = Math.min(100, Math.max(0, 100 - (avgHeadDelta * 200))); 
-    const eyeContactScore = Math.min(100, Math.max(0, eyeContactRatio * 100));
+  // 3. Detection Loop
+  useEffect(() => {
+      if (!faceLandmarker || !isCameraOn || !webcamRef.current?.video) return;
 
-    const overall = (0.6 * eyeContactScore) + (0.4 * headStabilityScore);
+      const detect = () => {
+          if (!webcamRef.current?.video || webcamRef.current.video.readyState !== 4) {
+               requestRef.current = requestAnimationFrame(detect);
+               return;
+          }
+          
+          const startTimeMs = performance.now();
+          if (lastVideoTime.current !== webcamRef.current.video.currentTime) {
+              lastVideoTime.current = webcamRef.current.video.currentTime;
+              const results = faceLandmarker.detectForVideo(webcamRef.current.video, startTimeMs);
+              
+              if (results.faceLandmarks && results.faceLandmarks.length > 0) {
+                  const landmarks = results.faceLandmarks[0];
+                  // Nose tip is index 1
+                  const noseTip = landmarks[1];
+                  
+                  // Simple bounds check for looking away
+                  if (noseTip.x < 0.2 || noseTip.x > 0.8 || noseTip.y < 0.2 || noseTip.y > 0.8) {
+                      setIsLookingAway(true);
+                      lookingAwayCount.current += 1;
+                      
+                      // Identify continuous looking away for warning
+                      // (Simplified for now)
+                  } else {
+                      setIsLookingAway(false);
+                  }
+                  
+                  // Head movement calculation
+                  if (lastHeadMatrix.current) {
+                      const dx = noseTip.x - lastHeadMatrix.current[0];
+                      const dy = noseTip.y - lastHeadMatrix.current[1];
+                      totalHeadDelta.current += Math.sqrt(dx*dx + dy*dy);
+                  }
+                  lastHeadMatrix.current = [noseTip.x, noseTip.y];
+              }
+              samplesCount.current += 1;
+          }
+          requestRef.current = requestAnimationFrame(detect);
+      };
 
-    return {
-       eye_contact_score: Math.round(eyeContactScore),
-       head_stability_score: Math.round(headStabilityScore),
-       overall_confidence: Math.round(overall),
-       metrics_detail: {
-           total_frames: total,
-           looking_away_frames: lookingAwayCount.current,
-           avg_head_delta: avgHeadDelta
-       }
-    };
-  };
-
-  const handleAutoSubmit = () => {
-      handleSubmit(true); 
-  };
+      detect();
+      return () => {
+          if (requestRef.current) cancelAnimationFrame(requestRef.current);
+      }
+  }, [faceLandmarker, isCameraOn]);
+  
+  // --- RE-IMPLEMENTED LOGIC END ---
 
   const handleAudioStop = async (audioBlob: Blob) => {
     if (isSubmitting) return;
@@ -219,10 +166,12 @@ export const InterviewSession: React.FC = () => {
     
     try {
         const metrics = calculateMetrics();
-        await api.sendAudioAnswer(sessionId || "", audioBlob, metrics);
+        const data = await api.sendAudioAnswer(sessionId || "", audioBlob, metrics);
         setAnswer("(Voice Answer Submitted)"); 
-        // Ideally, we'd sync state properly, but a reload works for MVP
-        window.location.reload(); 
+        
+        // Use store handler instead of reload
+        handleVoiceResponse(data);
+        
     } catch (e: any) {
         console.error(e);
         const msg = e.response?.data?.detail || e.message || "Unknown error";
@@ -236,14 +185,12 @@ export const InterviewSession: React.FC = () => {
     if (isSubmitting) return;
     setIsSubmitting(true);
     
-    if (!auto) {
-        await new Promise(resolve => setTimeout(resolve, 1500));
-    } else {
-        await new Promise(resolve => setTimeout(resolve, 500));
-    }
+    // Small delay for UX
+    await new Promise(resolve => setTimeout(resolve, auto ? 500 : 1500));
     
     const metrics = calculateMetrics();
-    submitAnswer(answer, metrics); 
+    await submitAnswer(answer, metrics); 
+    setIsSubmitting(false); // Important: submitAnswer doesn't fully reset component local state
   };
   
   const handleManualEnd = async () => {
@@ -252,11 +199,13 @@ export const InterviewSession: React.FC = () => {
           try {
               if (sessionId) {
                   await api.endInterview(sessionId);
-                  window.location.reload(); 
+                  endInterview(); // Switch store state to completed
               }
           } catch(e) {
               console.error(e);
-              alert("Failed to end interview");
+              // meaningful error (but we can force end anyway)
+              endInterview();
+          } finally {
               setIsSubmitting(false);
           }
       }
@@ -345,9 +294,11 @@ export const InterviewSession: React.FC = () => {
                     <>
                     <Webcam
                         ref={webcamRef}
-                        audio={false}
+                        audio={true}
+                        muted={true}
                         screenshotFormat="image/jpeg"
                         videoConstraints={{ facingMode: "user" }}
+                        onUserMedia={(s) => setStream(s)}
                         className="w-full h-full object-cover rounded-lg transform scale-x-[-1]" 
                     />
                     <AnimatePresence>

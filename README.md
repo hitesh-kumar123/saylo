@@ -128,7 +128,7 @@ npm run test:ui       # UI dashboard
 npm run test:coverage # Coverage report
 ```
 
-Test files: `frontend/test/`
+Test files: `frontend/src/test/`
 
 ## Project Structure
 
@@ -140,6 +140,7 @@ saylo/
 │   │   ├── pages/             # Page components
 │   │   ├── services/          # API & utility services
 │   │   ├── store/             # Zustand state management
+│   │   ├── test/              # Frontend tests
 │   │   └── types/             # TypeScript types
 │   └── package.json
 │
@@ -156,8 +157,7 @@ saylo/
 │   ├── requirements.txt       # Python dependencies
 │   └── run_server.bat         # Start script
 │
-├── docs/                      # Documentation
-├── test/                      # Frontend tests
+├── OLLAMA_SETUP.md            # Ollama setup guide
 └── package.json               # Root package config
 ```
 
@@ -176,7 +176,7 @@ See `OLLAMA_SETUP.md` for a more detailed guide and troubleshooting tips.
 
 ## 7. Contributing
 
-Small contribution guidelines are in `docs/CONTRIBUTING.md`. In short:
+Contribution guidelines:
 
 - Fork and use feature branches
 - Run tests and linters before opening a PR
@@ -191,11 +191,4 @@ Small contribution guidelines are in `docs/CONTRIBUTING.md`. In short:
 
 If you encounter environment-specific issues, open an issue with a short reproduction and logs.
 
----
 
-If you'd like, I can also:
-
-- Add a `docs/` folder with a short Developer Setup and Contributing guide (I already added `docs/CONTRIBUTING.md`).
-- Add a small `README` badge summary and a short architecture diagram in `docs/ARCHITECTURE.md`.
-
-Done — updated documentation to be accurate, concise and actionable.

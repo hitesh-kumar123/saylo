@@ -132,6 +132,8 @@ Test files: `frontend/src/test/`
 
 ## Project Structure
 
+
+
 ```
 saylo/
 ├── frontend/                  # React + TypeScript frontend

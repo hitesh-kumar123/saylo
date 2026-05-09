@@ -10,7 +10,7 @@ import DashboardLayout from './components/layout/DashboardLayout';
 import Dashboard from './pages/Dashboard';
 import InterviewSetup from './pages/InterviewSetup';
 import InterviewSession from './pages/InterviewSession';
-import VideoInterview from './pages/VideoInterview';
+import LiveAudioInterview from './pages/LiveAudioInterview';
 import Results from './pages/Results';
 import History from './pages/History';
 import Profile from './pages/Profile';
@@ -41,8 +41,8 @@ function App() {
           <Route path="/interview/:id" element={
             <ProtectedRoute><InterviewSession /></ProtectedRoute>
           } />
-          <Route path="/interview/:id/video" element={
-            <ProtectedRoute><VideoInterview /></ProtectedRoute>
+          <Route path="/interview/:id/audio" element={
+            <ProtectedRoute><LiveAudioInterview /></ProtectedRoute>
           } />
           <Route path="/interview/:id/results" element={
             <ProtectedRoute><Results /></ProtectedRoute>

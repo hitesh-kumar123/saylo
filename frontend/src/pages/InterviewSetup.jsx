@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Clock, Book, Brain, Code, CheckCircle, ArrowRight, Loader2, Video, MessageSquare } from 'lucide-react';
+import { Clock, Book, Brain, Code, CheckCircle, ArrowRight, Loader2, Mic, MessageSquare } from 'lucide-react';
 import { cn } from '../lib/utils';
 import ResumeUpload from '../components/ResumeUpload';
 import { api } from '../services/api';
@@ -44,8 +44,8 @@ export default function InterviewSetup() {
         }
 
         // 3. Navigate based on mode
-        if (config.mode === 'video') {
-            navigate(`/interview/${sessionId}/video`);
+        if (config.mode === 'audio') {
+            navigate(`/interview/${sessionId}/audio`);
         } else {
             navigate(`/interview/${sessionId}`);
         }
@@ -128,11 +128,11 @@ export default function InterviewSetup() {
                             desc="AI-powered text interview."
                         />
                         <SelectionCard 
-                            selected={config.mode === 'video'} 
-                            onClick={() => setConfig({...config, mode: 'video'})}
-                            icon={Video}
-                            title="Video Call"
-                            desc="Jitsi-based live interview."
+                            selected={config.mode === 'audio'} 
+                            onClick={() => setConfig({...config, mode: 'audio'})}
+                            icon={Mic}
+                            title="Voice Interview"
+                            desc="Hands-free AI voice assistant."
                         />
                     </div>
                 </div>

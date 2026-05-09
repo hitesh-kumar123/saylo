@@ -6,7 +6,7 @@ Clean, modular architecture with separated frontend and backend.
 
 ## Quick Links
 
-- **Frontend**: `frontend/src/main.tsx`
+- **Frontend**: `frontend/src/main.jsx`
 - **Backend**: `backend/app/main.py`
 - **Frontend Dev**: `cd frontend && npm run dev`
 - **Backend Dev**: `cd backend && run_server.bat`
@@ -136,14 +136,14 @@ Test files: `frontend/src/test/`
 
 ```
 saylo/
-├── frontend/                  # React + TypeScript frontend
+├── frontend/                  # React + JavaScript frontend
 │   ├── src/
 │   │   ├── components/        # Reusable UI components
 │   │   ├── pages/             # Page components
 │   │   ├── services/          # API & utility services
 │   │   ├── store/             # Zustand state management
 │   │   ├── test/              # Frontend tests
-│   │   └── types/             # TypeScript types
+│   │   └── types/             # JSDoc types (optional)
 │   └── package.json
 │
 ├── backend/                   # Python FastAPI

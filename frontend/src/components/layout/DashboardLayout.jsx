@@ -1,84 +1,90 @@
-import React from 'react';
-import { Link, Outlet, useLocation } from 'react-router-dom';
-import { LayoutDashboard, PlusCircle, History, User, LogOut, Settings } from 'lucide-react';
+import React, { useState } from 'react';
+import { Outlet, NavLink, useLocation } from 'react-router-dom';
+import { LayoutDashboard, Clock, Settings, LogOut, Menu, X } from 'lucide-react';
 import { cn } from '../../lib/utils';
-import { motion } from 'framer-motion';
+import { useAuth } from '../../context/AuthContext';
 
-const SidebarItem = ({ icon: Icon, label, href }) => {
-  const location = useLocation();
-  const isActive = location.pathname === href;
-
-  return (
-    <Link 
-      to={href}
-      className={cn(
-        "flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group relative",
-        isActive 
-          ? "bg-primary-500/10 text-primary-400" 
-          : "text-slate-400 hover:bg-white/5 hover:text-slate-200"
-      )}
-    >
-      {isActive && (
-        <motion.div 
-            layoutId="sidebar-active"
-            className="absolute inset-0 bg-primary-500/10 rounded-xl border border-primary-500/20"
-            initial={false}
-            transition={{ type: "spring", stiffness: 300, damping: 30 }}
-        />
-      )}
-      <Icon className="w-5 h-5 relative z-10" />
-      <span className="font-medium relative z-10">{label}</span>
-      
-      {isActive && (
-         <div className="absolute right-2 w-1.5 h-1.5 rounded-full bg-primary-400 shadow-[0_0_8px_rgba(99,102,241,0.5)]" />
-      )}
-    </Link>
-  );
-};
+const navItems = [
+  { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard' },
+  { icon: Clock, label: 'History', path: '/history' },
+  { icon: Settings, label: 'Settings', path: '/settings' },
+];
 
 export default function DashboardLayout() {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const location = useLocation();
+  const { user, logout } = useAuth();
+
   return (
-    <div className="flex min-h-screen bg-dark-bg text-slate-100 font-sans">
+    <div className="min-h-screen bg-dark-bg text-white flex">
       {/* Sidebar */}
-      <aside className="w-64 border-r border-white/5 bg-dark-card/30 backdrop-blur-xl hidden md:flex flex-col fixed h-full z-20">
-        <div className="p-6">
-          <Link to="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary-500 to-accent-500 flex items-center justify-center text-white font-bold">S</div>
-            <span className="font-bold text-xl tracking-tight bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">Saylo.</span>
-          </Link>
+      <aside className={cn(
+        "fixed lg:static inset-y-0 left-0 z-30 w-64 bg-dark-card border-r border-white/5 flex flex-col transition-transform lg:translate-x-0",
+        sidebarOpen ? "translate-x-0" : "-translate-x-full"
+      )}>
+        <div className="h-16 flex items-center justify-between px-6 border-b border-white/5">
+          <span className="text-xl font-bold">
+            Say<span className="text-primary-400">LO</span>
+          </span>
+          <button onClick={() => setSidebarOpen(false)} className="lg:hidden p-1 hover:bg-white/10 rounded">
+            <X className="w-5 h-5" />
+          </button>
         </div>
 
-        <div className="flex-1 px-4 space-y-2 py-4">
-          <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider px-4 mb-2">Menu</div>
-          <SidebarItem icon={LayoutDashboard} label="Dashboard" href="/dashboard" />
-          <SidebarItem icon={PlusCircle} label="New Interview" href="/interview/setup" />
-          <SidebarItem icon={History} label="History" href="/dashboard/history" />
-          <SidebarItem icon={User} label="Profile" href="/profile" />
-        </div>
+        <nav className="flex-1 p-4 space-y-1">
+          {navItems.map(({ icon: Icon, label, path }) => (
+            <NavLink
+              key={path}
+              to={path}
+              onClick={() => setSidebarOpen(false)}
+              className={cn(
+                "flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all",
+                location.pathname === path
+                  ? "bg-primary-500/10 text-primary-400 border border-primary-500/20"
+                  : "text-slate-400 hover:text-white hover:bg-white/5"
+              )}
+            >
+              <Icon className="w-5 h-5" />
+              {label}
+            </NavLink>
+          ))}
+        </nav>
 
         <div className="p-4 border-t border-white/5">
-           <SidebarItem icon={Settings} label="Settings" href="/settings" />
-           <button className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:bg-red-500/10 hover:text-red-400 transition-colors mt-1">
-             <LogOut className="w-5 h-5" />
-             <span className="font-medium">Sign Out</span>
-           </button>
+          <div className="flex items-center gap-3 px-4 py-2 mb-2">
+            <div className="w-8 h-8 rounded-full bg-primary-500/20 border border-primary-500/30 flex items-center justify-center text-sm font-bold text-primary-400">
+              {user?.email?.[0]?.toUpperCase() || '?'}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-white truncate">{user?.email || 'User'}</p>
+            </div>
+          </div>
+          <button
+            onClick={logout}
+            className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-slate-400 hover:text-red-400 hover:bg-red-500/5 transition-colors w-full"
+          >
+            <LogOut className="w-5 h-5" />
+            Sign Out
+          </button>
         </div>
       </aside>
 
-      {/* Main Content */}
-      <main className="flex-1 md:ml-64 relative">
-         <div className="absolute top-0 left-0 w-full h-96 bg-primary-500/5 blur-[100px] pointer-events-none" />
-        
-        {/* Mobile Header */}
-        <header className="md:hidden h-16 border-b border-white/5 flex items-center justify-between px-4 glass sticky top-0 z-30">
-             <span className="font-bold">Saylo.</span>
-             {/* Mobile Menu Trigger would go here */}
-        </header>
+      {/* Mobile overlay */}
+      {sidebarOpen && (
+        <div className="fixed inset-0 bg-black/50 z-20 lg:hidden" onClick={() => setSidebarOpen(false)} />
+      )}
 
-        <div className="p-6 md:p-10 max-w-7xl mx-auto min-h-screen">
+      {/* Main content */}
+      <div className="flex-1 flex flex-col min-h-screen">
+        <header className="h-16 bg-dark-card/50 backdrop-blur border-b border-white/5 flex items-center px-6 lg:hidden">
+          <button onClick={() => setSidebarOpen(true)} className="p-2 hover:bg-white/10 rounded-lg">
+            <Menu className="w-5 h-5" />
+          </button>
+        </header>
+        <main className="flex-1 p-6 lg:p-8 overflow-y-auto">
           <Outlet />
-        </div>
-      </main>
+        </main>
+      </div>
     </div>
   );
 }

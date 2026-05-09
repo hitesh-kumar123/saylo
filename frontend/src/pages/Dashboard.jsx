@@ -1,10 +1,11 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Play, TrendingUp, Calendar, Clock, ArrowUpRight } from 'lucide-react';
+import { Play, TrendingUp, Calendar, Clock, ArrowUpRight, Zap } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 const StatCard = ({ title, value, label, trend, icon: Icon, delay }) => (
-  <motion.div 
+  <motion.div
     initial={{ opacity: 0, y: 20 }}
     animate={{ opacity: 1, y: 0 }}
     transition={{ delay, duration: 0.5 }}
@@ -26,7 +27,7 @@ const StatCard = ({ title, value, label, trend, icon: Icon, delay }) => (
                 </div>
             )}
         </div>
-        
+
         <h3 className="text-3xl font-bold text-white mb-1 group-hover:bg-gradient-to-r group-hover:from-white group-hover:to-slate-300 group-hover:bg-clip-text group-hover:text-transparent transition-all">
             {value}
         </h3>
@@ -36,12 +37,16 @@ const StatCard = ({ title, value, label, trend, icon: Icon, delay }) => (
 );
 
 export default function Dashboard() {
+  const { user } = useAuth();
+
   return (
     <div className="space-y-8">
       {/* Welcome Section */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-            <h1 className="text-3xl font-bold mb-1">Dashboard</h1>
+            <h1 className="text-3xl font-bold mb-1">
+              Welcome{user?.email ? `, ${user.email.split('@')[0]}` : ''}
+            </h1>
             <p className="text-slate-400">Track your progress and practice daily.</p>
         </div>
         <Link to="/interview/setup">
@@ -105,7 +110,7 @@ export default function Dashboard() {
                     </div>
                 ))}
             </div>
-            
+
             <div className="mt-6 pt-6 border-t border-white/10">
                 <div className="rounded-xl bg-gradient-to-r from-accent-500/20 to-primary-500/20 border border-accent-500/20 p-4">
                     <h4 className="text-sm font-semibold text-accent-300 mb-1">Pro Tip</h4>
@@ -116,24 +121,4 @@ export default function Dashboard() {
       </div>
     </div>
   );
-}
-
-// Icon wrapper for specific usage
-function Zap(props) {
-    return (
-        <svg
-        {...props}
-        xmlns="http://www.w3.org/2000/svg"
-        width="24"
-        height="24"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        >
-        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
-        </svg>
-    )
 }

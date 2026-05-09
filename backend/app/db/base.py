@@ -1,3 +1,2 @@
-from sqlalchemy.ext.declarative import declarative_base
-
-Base = declarative_base()
+# Beanie does not require a SQLAlchemy Base class.
+# This file is kept as a placeholder for compatibility.

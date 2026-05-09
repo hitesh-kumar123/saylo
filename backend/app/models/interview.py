@@ -1,59 +1,53 @@
-from sqlalchemy import Column, String, Integer, ForeignKey, DateTime, Text, Enum
-from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.orm import relationship
-from sqlalchemy.sql import func
-import uuid
-from app.db.base import Base
+from datetime import datetime
+from typing import Optional, List
 import enum
+
+from beanie import Document
+from pydantic import BaseModel, Field
+
 
 class InterviewStatus(str, enum.Enum):
     IN_PROGRESS = "IN_PROGRESS"
     COMPLETED = "COMPLETED"
 
-class Interview(Base):
-    __tablename__ = "interviews"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    # Ideally link to User, but since auth is currently local storage only, 
-    # we might need to handle "Guest" or start migrating auth. 
-    # For now, I will add the ForeignKey but it might fail if we don't have users.
-    # The requirement said "Create minimal but correct tables", including User.
-    # So I will assume we will create a user or have one.
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True) # Nullable for guest for now? Or Strict?
-    # Strict is better for "correct" design.
-    
-    role = Column(String, nullable=False)
-    difficulty = Column(String, nullable=False)
-    topic = Column(String, nullable=True)
-    status = Column(Enum(InterviewStatus), default=InterviewStatus.IN_PROGRESS)
-    current_state = Column(Text, nullable=True) # Storing JSON as Text for broad compatibility
-    start_time = Column(DateTime(timezone=True), server_default=func.now())
-    end_time = Column(DateTime(timezone=True), nullable=True)
-    overall_feedback = Column(Text, nullable=True)
+# ── Embedded sub-documents ──────────────────────────────────────────────────
 
-    questions = relationship("Question", back_populates="interview", cascade="all, delete-orphan")
+class Answer(BaseModel):
+    """Embedded answer for a question."""
+    content: str
+    audio_url: Optional[str] = None
+    ai_feedback: Optional[str] = None
+    ai_score: Optional[float] = None
+    created_at: datetime = Field(default_factory=datetime.utcnow)
 
-class Question(Base):
-    __tablename__ = "questions"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    interview_id = Column(UUID(as_uuid=True), ForeignKey("interviews.id"), nullable=False)
-    content = Column(Text, nullable=False)
-    order = Column(Integer, nullable=False)
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
+class Question(BaseModel):
+    """Embedded question with an optional answer."""
+    content: str
+    order: int
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    answer: Optional[Answer] = None
 
-    interview = relationship("Interview", back_populates="questions")
-    answer = relationship("Answer", uselist=False, back_populates="question", cascade="all, delete-orphan")
 
-class Answer(Base):
-    __tablename__ = "answers"
+# ── Top-level MongoDB document ──────────────────────────────────────────────
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    question_id = Column(UUID(as_uuid=True), ForeignKey("questions.id"), unique=True, nullable=False)
-    content = Column(Text, nullable=False)
-    audio_url = Column(String, nullable=True)
-    ai_feedback = Column(Text, nullable=True)
-    ai_score = Column(Integer, nullable=True)
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
+class Interview(Document):
+    """
+    One interview session. Questions and answers are embedded directly
+    instead of being separate collections — idiomatic MongoDB design.
+    """
+    session_id: str                          # UUID string (set by endpoint)
+    user_id: Optional[str] = None           # Auth user id (ObjectId string)
+    role: str
+    difficulty: str
+    topic: Optional[str] = "General"
+    status: InterviewStatus = InterviewStatus.IN_PROGRESS
+    current_state: Optional[dict] = None    # Dynamic interview state blob
+    questions: List[Question] = []
+    start_time: datetime = Field(default_factory=datetime.utcnow)
+    end_time: Optional[datetime] = None
+    overall_feedback: Optional[str] = None
 
-    question = relationship("Question", back_populates="answer")
+    class Settings:
+        name = "interviews"

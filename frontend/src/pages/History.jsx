@@ -1,91 +1,104 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Calendar, Clock, BarChart2, ArrowRight, Filter } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Clock, ArrowUpRight, Search, Loader2 } from 'lucide-react';
+import { api } from '../services/api';
 
 export default function History() {
-  const history = [
-    { id: '1', type: 'Technical', title: 'Binary Tree Inversion', score: 85, date: 'Today, 2:30 PM', duration: '25m', difficulty: 'Medium' },
-    { id: '2', type: 'Behavioral', title: 'Leadership Experience', score: 92, date: 'Yesterday', duration: '15m', difficulty: 'Easy' },
-    { id: '3', type: 'Technical', title: 'System Design: URL Shortener', score: 78, date: 'Feb 1, 2024', duration: '45m', difficulty: 'Hard' },
-    { id: '4', type: 'Technical', title: 'Two Sum', score: 100, date: 'Jan 30, 2024', duration: '10m', difficulty: 'Easy' },
-    { id: '5', type: 'Behavioral', title: 'Conflict Resolution', score: 88, date: 'Jan 28, 2024', duration: '20m', difficulty: 'Medium' },
-  ];
+  const [sessions, setSessions] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    const fetchHistory = async () => {
+      try {
+        const data = await api.getInterviewHistory();
+        setSessions(data);
+      } catch (err) {
+        setError('Failed to load history');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchHistory();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="w-8 h-8 text-ink animate-spin" />
+      </div>
+    );
+  }
 
   return (
-    <div className="max-w-6xl mx-auto py-8">
-      <div className="flex items-center justify-between mb-8">
+    <div className="space-y-6">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-6 border-b border-ink/10">
         <div>
-            <h1 className="text-3xl font-bold mb-2">Practice History</h1>
-            <p className="text-slate-400">Review your past sessions and track improvement.</p>
+          <h1 className="font-display text-5xl mb-2 text-ink">Interview History</h1>
+          <p className="text-sm font-medium text-muted uppercase tracking-widest">{sessions.length} sessions recorded</p>
         </div>
-        <button className="px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/5 text-slate-300 flex items-center gap-2 transition-colors">
-            <Filter className="w-4 h-4" /> Filter
-        </button>
-      </div>
-
-      <div className="glass-card overflow-hidden">
-        <div className="grid grid-cols-12 gap-4 p-4 border-b border-white/5 text-xs font-semibold text-slate-500 uppercase tracking-wider bg-white/5">
-            <div className="col-span-5 md:col-span-4">Session Details</div>
-            <div className="col-span-3 md:col-span-2">Type</div>
-            <div className="col-span-2 hidden md:block">Duration</div>
-            <div className="col-span-2 hidden md:block">Score</div>
-            <div className="col-span-2 text-right">Action</div>
-        </div>
-
-        <div className="divide-y divide-white/5">
-            {history.map((item, i) => (
-                <motion.div 
-                    key={item.id}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: i * 0.05 }}
-                    className="grid grid-cols-12 gap-4 p-4 items-center hover:bg-white/5 transition-colors group"
-                >
-                    <div className="col-span-5 md:col-span-4">
-                        <div className="font-medium text-white group-hover:text-primary-300 transition-colors">{item.title}</div>
-                        <div className="text-xs text-slate-500 flex items-center gap-2 mt-1">
-                            <Calendar className="w-3 h-3" /> {item.date}
-                        </div>
-                    </div>
-                    
-                    <div className="col-span-3 md:col-span-2">
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${
-                            item.type === 'Technical' 
-                                ? 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20' 
-                                : 'bg-pink-500/10 text-pink-400 border-pink-500/20'
-                        }`}>
-                            {item.type}
-                        </span>
-                    </div>
-
-                    <div className="col-span-2 hidden md:flex items-center text-sm text-slate-400">
-                        <Clock className="w-4 h-4 mr-2" /> {item.duration}
-                    </div>
-
-                    <div className="col-span-2 hidden md:block">
-                        <div className="flex items-center gap-2">
-                            <div className="w-16 h-1.5 bg-white/10 rounded-full overflow-hidden">
-                                <div 
-                                    className={`h-full rounded-full ${item.score >= 90 ? 'bg-emerald-500' : item.score >= 70 ? 'bg-primary-500' : 'bg-amber-500'}`}
-                                    style={{ width: `${item.score}%` }}
-                                />
-                            </div>
-                            <span className="text-sm font-bold text-white">{item.score}</span>
-                        </div>
-                    </div>
-
-                    <div className="col-span-2 text-right">
-                        <Link to={`/interview/${item.id}/results`}>
-                            <button className="p-2 rounded-lg hover:bg-white/10 text-slate-400 hover:text-white transition-colors">
-                                <ArrowRight className="w-4 h-4" />
-                            </button>
-                        </Link>
-                    </div>
-                </motion.div>
-            ))}
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink/50" />
+          <input
+            type="text"
+            placeholder="Search sessions..."
+            className="bg-white border border-ink/10 rounded-sm pl-10 pr-4 py-2.5 text-sm text-ink focus:outline-none focus:border-ink w-full md:w-64 transition-colors"
+          />
         </div>
       </div>
+
+      {error && (
+        <div className="p-4 rounded-sm bg-red-100 border border-red-200 text-red-600 text-sm font-medium">
+          {error}
+        </div>
+      )}
+
+      {sessions.length === 0 && !error ? (
+        <div className="text-center py-20 saylo-card">
+          <Clock className="w-12 h-12 text-ink/30 mx-auto mb-4" />
+          <h3 className="text-lg font-bold text-ink mb-2">No interviews yet</h3>
+          <p className="text-sm text-muted">Start your first interview to see your history here.</p>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {sessions.map((session, i) => (
+            <motion.div
+              key={session.session_id || i}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.05 }}
+              className="flex items-center justify-between p-5 rounded-sm bg-paper border border-ink/10 hover:border-ink/30 transition-colors group cursor-pointer"
+            >
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-cream border border-ink/10 flex items-center justify-center">
+                  <span className="font-display text-xl text-ink">
+                    {(session.role || 'INT')[0].toUpperCase()}
+                  </span>
+                </div>
+                <div>
+                  <h4 className="font-bold text-ink group-hover:text-sayloAccent2 transition-colors">{session.role || 'Interview Session'}</h4>
+                  <p className="text-[11px] font-bold uppercase tracking-widest text-muted mt-1">
+                    {session.difficulty || 'Medium'} • {session.status || 'Completed'}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-6">
+                <div className="text-right">
+                  <div className="font-display text-2xl text-ink leading-none">
+                    {session.avg_score ? `${session.avg_score.toFixed(1)}/10` : '—'}
+                  </div>
+                  <div className="text-[10px] font-bold uppercase tracking-wider text-muted mt-1">
+                    {session.question_count || 0} questions
+                  </div>
+                </div>
+                <div className="p-2 border border-ink/10 group-hover:bg-ink group-hover:text-paper transition-colors">
+                  <ArrowUpRight className="w-4 h-4" />
+                </div>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

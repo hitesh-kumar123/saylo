@@ -1,38 +1,33 @@
-import os
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 from typing import List
 
+
 class Settings(BaseSettings):
+    model_config = SettingsConfigDict(env_file=".env", case_sensitive=True)
+
     PROJECT_NAME: str = "SayLO"
     API_V1_STR: str = "/api"
-    
+
     # CORS
     CORS_ORIGINS: List[str] = [
-        "http://localhost:5173",  # Vite default
+        "http://localhost:5173",
+        "http://localhost:5174",
+        "http://localhost:5175",
         "http://localhost:3000",
         "http://127.0.0.1:5173",
+        "http://127.0.0.1:5174",
     ]
-    
+
     # JWT Auth
-    SECRET_KEY: str = os.getenv("SECRET_KEY", "super_secret_key_change_me_in_prod")
+    SECRET_KEY: str  # No default — must be set in .env
     ALGORITHM: str = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 7 # 7 days
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 7  # 7 days
 
-    # Ollama
-    OLLAMA_BASE_URL: str = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
-    OLLAMA_MODEL: str = os.getenv("OLLAMA_MODEL", "llama3.2:3b")
+    # Gemini
+    GEMINI_API_KEY: str  # No default — must be set in .env
 
-    # Database
-    POSTGRES_SERVER: str = os.getenv("POSTGRES_SERVER", "localhost")
-    POSTGRES_USER: str = os.getenv("POSTGRES_USER", "postgres")
-    POSTGRES_PASSWORD: str = os.getenv("POSTGRES_PASSWORD", "123456")
-    POSTGRES_DB: str = os.getenv("POSTGRES_DB", "saylo")
-    
-    @property
-    def SQLALCHEMY_DATABASE_URI(self) -> str:
-        return f"postgresql://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_SERVER}/{self.POSTGRES_DB}"
+    # MongoDB
+    MONGO_URI: str = "mongodb://localhost:27017/saylo"
 
-    class Config:
-        case_sensitive = True
 
 settings = Settings()

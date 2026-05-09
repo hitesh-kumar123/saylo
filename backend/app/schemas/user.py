@@ -1,18 +1,20 @@
-from typing import Optional
 from pydantic import BaseModel, EmailStr
-from uuid import UUID
+
 
 class UserBase(BaseModel):
     email: EmailStr
 
+
 class UserCreate(UserBase):
     password: str
+
 
 class UserLogin(UserBase):
     password: str
 
+
 class UserResponse(UserBase):
-    id: UUID
-    
+    id: str  # MongoDB ObjectId as string
+
     class Config:
         from_attributes = True

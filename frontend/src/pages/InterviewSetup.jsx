@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Clock, Book, Brain, Code, CheckCircle, ArrowRight } from 'lucide-react';
+import { Clock, Book, Brain, Code, CheckCircle, ArrowRight, Loader2, Video, MessageSquare } from 'lucide-react';
 import { cn } from '../lib/utils';
+import ResumeUpload from '../components/ResumeUpload';
+import { api } from '../services/api';
 
 export default function InterviewSetup() {
   const navigate = useNavigate();
@@ -10,34 +12,71 @@ export default function InterviewSetup() {
     type: 'technical',
     domain: 'frontend',
     difficulty: 'medium',
-    duration: 30
+    duration: 30,
+    mode: 'text'
   });
+  const [resumeFile, setResumeFile] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleStart = () => {
-    // Navigate to a random interview ID
-    const interviewId = Math.random().toString(36).substring(7);
-    navigate(`/interview/${interviewId}`);
+  const handleStart = async () => {
+    setIsLoading(true);
+    try {
+        // 1. Start Session
+        // Use default 'Frontend Developer' role if domain is frontend. 
+        // Ideally we should have a domain selector.
+        const role = `${config.domain} developer`; 
+        const sessionData = await api.startSession({ role, difficulty: config.difficulty });
+        const sessionId = sessionData.session_id;
+
+        // 2. Upload Resume if selected
+        if (resumeFile) {
+            try {
+                await api.uploadResume(sessionId, resumeFile);
+            } catch (err) {
+                console.error("Failed to upload resume, proceeding anyway", err);
+                // Optionally show toast/alert
+            }
+        }
+
+        // Store first question so InterviewSession can display it immediately
+        if (sessionData.message) {
+            sessionStorage.setItem(`saylo_first_q_${sessionId}`, sessionData.message);
+        }
+
+        // 3. Navigate based on mode
+        if (config.mode === 'video') {
+            navigate(`/interview/${sessionId}/video`);
+        } else {
+            navigate(`/interview/${sessionId}`);
+        }
+
+    } catch (error) {
+        console.error("Failed to start", error);
+        alert("Failed to start interview. Please check backend.");
+    } finally {
+        setIsLoading(false);
+    }
   };
 
   const SelectionCard = ({ selected, onClick, icon: Icon, title, desc }) => (
     <div 
       onClick={onClick}
       className={cn(
-        "p-4 rounded-xl border border-white/5 bg-white/5 cursor-pointer hover:border-primary-500/30 transition-all relative overflow-hidden group",
-        selected && "border-primary-500 bg-primary-500/10"
+        "p-4 rounded-sm border cursor-pointer transition-all relative overflow-hidden group",
+        selected ? "border-ink bg-ink text-paper" : "border-ink/10 bg-paper hover:border-ink/30 text-ink"
       )}
     >
       <div className="flex items-start gap-4 mb-2">
-        <div className={cn("p-2 rounded-lg transition-colors", selected ? "bg-primary-500 text-white" : "bg-white/10 text-slate-400 group-hover:text-white")}>
+        <div className={cn("p-2 rounded-sm transition-colors", selected ? "bg-paper/10 text-paper" : "bg-ink/5 text-ink/60 group-hover:text-ink")}>
             <Icon className="w-5 h-5" />
         </div>
         <div>
-            <h3 className={cn("font-medium transition-colors", selected ? "text-primary-300" : "text-slate-200")}>{title}</h3>
-            <p className="text-xs text-slate-500 leading-relaxed mt-1">{desc}</p>
+            <h3 className="font-bold text-sm">{title}</h3>
+            <p className={cn("text-xs leading-relaxed mt-1", selected ? "text-paper/70" : "text-muted")}>{desc}</p>
         </div>
       </div>
       {selected && (
-        <div className="absolute top-2 right-2 text-primary-500">
+        <div className="absolute top-3 right-3 text-sayloAccent">
             <CheckCircle className="w-4 h-4 fill-current/20" />
         </div>
       )}
@@ -45,20 +84,20 @@ export default function InterviewSetup() {
   );
 
   return (
-    <div className="max-w-4xl mx-auto py-8">
+    <div className="max-w-4xl mx-auto py-8 px-4 pb-20">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
       >
-        <h1 className="text-3xl font-bold mb-2">Configure Interview</h1>
-        <p className="text-slate-400 mb-8">Customize your session to focus on what matters most.</p>
+        <h1 className="font-display text-5xl mb-2 text-ink">Configure Interview</h1>
+        <p className="text-sm font-medium text-muted uppercase tracking-widest mb-10">Customize your session to focus on what matters most.</p>
 
-        <div className="grid md:grid-cols-2 gap-8">
-            <div className="space-y-6">
+        <div className="grid md:grid-cols-2 gap-10">
+            <div className="space-y-8">
                 
                 {/* Interview Type */}
                 <div className="space-y-3">
-                    <label className="text-sm font-medium text-slate-300 uppercase tracking-wider">Interview Type</label>
+                    <label className="text-xs font-semibold uppercase tracking-widest text-ink/70">Interview Type</label>
                     <div className="grid grid-cols-1 gap-3">
                         <SelectionCard 
                             selected={config.type === 'technical'} 
@@ -77,19 +116,40 @@ export default function InterviewSetup() {
                     </div>
                 </div>
 
+                {/* Interview Mode */}
+                <div className="space-y-3">
+                    <label className="text-xs font-semibold uppercase tracking-widest text-ink/70">Interview Mode</label>
+                    <div className="grid grid-cols-2 gap-3">
+                        <SelectionCard 
+                            selected={config.mode === 'text'} 
+                            onClick={() => setConfig({...config, mode: 'text'})}
+                            icon={MessageSquare}
+                            title="Text Chat"
+                            desc="AI-powered text interview."
+                        />
+                        <SelectionCard 
+                            selected={config.mode === 'video'} 
+                            onClick={() => setConfig({...config, mode: 'video'})}
+                            icon={Video}
+                            title="Video Call"
+                            desc="Jitsi-based live interview."
+                        />
+                    </div>
+                </div>
+
                 {/* Duration */}
                 <div className="space-y-3">
-                    <label className="text-sm font-medium text-slate-300 uppercase tracking-wider">Duration</label>
+                    <label className="text-xs font-semibold uppercase tracking-widest text-ink/70">Duration</label>
                     <div className="flex gap-3">
                         {[15, 30, 45, 60].map(mins => (
                             <button
                                 key={mins}
                                 onClick={() => setConfig({...config, duration: mins})}
                                 className={cn(
-                                    "flex-1 py-3 px-2 rounded-xl border font-medium text-sm transition-all",
+                                    "flex-1 py-3 px-2 rounded-sm border font-semibold text-sm transition-all",
                                     config.duration === mins 
-                                        ? "bg-primary-600 border-primary-500 text-white shadow-lg shadow-primary-500/20" 
-                                        : "bg-white/5 border-white/5 text-slate-400 hover:bg-white/10"
+                                        ? "bg-ink border-ink text-paper" 
+                                        : "bg-paper border-ink/10 text-muted hover:bg-ink/5 hover:text-ink"
                                 )}
                             >
                                 {mins} min
@@ -97,22 +157,32 @@ export default function InterviewSetup() {
                         ))}
                     </div>
                 </div>
+
+                 {/* Resume Upload - NEW */}
+                 <div className="space-y-3">
+                    <label className="text-xs font-semibold uppercase tracking-widest text-ink/70">Resume (Optional)</label>
+                    {/* Note: the ResumeUpload component itself may need styling updates later, but we wrap it here */}
+                    <div className="bg-white border border-ink/10 rounded-sm p-4">
+                      <ResumeUpload onUploadComplete={(file) => setResumeFile(file)} />
+                    </div>
+                </div>
+
             </div>
 
-            <div className="space-y-6">
+            <div className="space-y-8">
                  {/* Difficulty */}
                  <div className="space-y-3">
-                    <label className="text-sm font-medium text-slate-300 uppercase tracking-wider">Difficulty</label>
+                    <label className="text-xs font-semibold uppercase tracking-widest text-ink/70">Difficulty</label>
                     <div className="grid grid-cols-3 gap-3">
                         {['easy', 'medium', 'hard'].map(level => (
                             <button
                                 key={level}
                                 onClick={() => setConfig({...config, difficulty: level})}
                                 className={cn(
-                                    "capitalize py-3 rounded-xl border font-medium text-sm transition-all",
+                                    "capitalize py-3 rounded-sm border font-semibold text-sm transition-all",
                                     config.difficulty === level 
-                                        ? "bg-primary-500/10 border-primary-500 text-primary-400" 
-                                        : "bg-white/5 border-white/5 text-slate-400 hover:bg-white/10"
+                                        ? "bg-ink/5 border-ink text-ink" 
+                                        : "bg-paper border-ink/10 text-muted hover:bg-ink/5 hover:text-ink"
                                 )}
                             >
                                 {level}
@@ -122,29 +192,45 @@ export default function InterviewSetup() {
                 </div>
 
                 {/* Summary Card */}
-                <div className="p-6 rounded-2xl bg-gradient-to-br from-dark-card to-primary-900/10 border border-white/5 shadow-2xl mt-8">
-                    <h3 className="font-semibold text-lg mb-4">Session Summary</h3>
-                    <div className="space-y-3 text-sm text-slate-300">
-                        <div className="flex justify-between border-b border-white/5 pb-2">
-                            <span>Type</span>
-                            <span className="capitalize font-medium text-white">{config.type}</span>
+                <div className="p-8 rounded-sm saylo-card mt-8">
+                    <h3 className="font-display text-3xl tracking-wide mb-6">Session Summary</h3>
+                    <div className="space-y-4 text-sm text-ink/80">
+                        <div className="flex justify-between border-b border-ink/10 pb-3">
+                            <span className="font-semibold uppercase tracking-widest text-xs">Type</span>
+                            <span className="capitalize font-bold text-ink">{config.type}</span>
                         </div>
-                        <div className="flex justify-between border-b border-white/5 pb-2">
-                            <span>Difficulty</span>
-                            <span className="capitalize font-medium text-white">{config.difficulty}</span>
+                        <div className="flex justify-between border-b border-ink/10 pb-3">
+                            <span className="font-semibold uppercase tracking-widest text-xs">Difficulty</span>
+                            <span className="capitalize font-bold text-ink">{config.difficulty}</span>
                         </div>
-                        <div className="flex justify-between border-b border-white/5 pb-2">
-                            <span>Duration</span>
-                            <span className="font-medium text-white">{config.duration} min</span>
+                        <div className="flex justify-between border-b border-ink/10 pb-3">
+                            <span className="font-semibold uppercase tracking-widest text-xs">Duration</span>
+                            <span className="font-bold text-ink">{config.duration} min</span>
                         </div>
+                        {resumeFile && (
+                            <div className="flex justify-between border-b border-ink/10 pb-3">
+                                <span className="font-semibold uppercase tracking-widest text-xs">Resume</span>
+                                <span className="font-bold text-green-600 truncate max-w-[150px]">{resumeFile.name}</span>
+                            </div>
+                        )}
                     </div>
 
                     <button 
                         onClick={handleStart}
-                        className="w-full mt-6 py-4 rounded-xl bg-gradient-to-r from-primary-600 to-primary-500 hover:from-primary-500 hover:to-primary-400 text-white font-bold shadow-lg shadow-primary-500/20 transition-all flex items-center justify-center gap-2 group"
+                        disabled={isLoading}
+                        className="w-full mt-8 py-4 bg-ink hover:bg-ink/90 text-paper text-sm font-bold uppercase tracking-widest transition-all flex items-center justify-center gap-3 group relative overflow-hidden disabled:opacity-50 disabled:cursor-not-allowed rounded-sm"
                     >
-                        Start Session
-                        <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                        <div className="absolute inset-0 bg-sayloAccent origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-300 ease-out z-0"></div>
+                        {isLoading ? (
+                            <>
+                                <Loader2 className="w-5 h-5 animate-spin relative z-10" /> <span className="relative z-10 group-hover:text-ink">Starting...</span>
+                            </>
+                        ) : (
+                            <>
+                                <span className="relative z-10 group-hover:text-ink transition-colors">Start Session</span>
+                                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 group-hover:text-ink transition-all relative z-10" />
+                            </>
+                        )}
                     </button>
                 </div>
             </div>

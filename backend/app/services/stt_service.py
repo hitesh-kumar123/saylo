@@ -1,47 +1,56 @@
-import os
-from faster_whisper import WhisperModel
+import logging
+from google import genai
+from app.core.config import settings
+
+logger = logging.getLogger(__name__)
+
+_client = None
+
+def _get_client():
+    global _client
+    if _client is None:
+        _client = genai.Client(api_key=settings.GEMINI_API_KEY)
+    return _client
+
+MODEL = "gemini-2.0-flash"
+
 
 class STTService:
-    def __init__(self):
-        self.model_path = "base" # or "small"
-        self.model = None
-        self._setup_ffmpeg()
-
-    def _setup_ffmpeg(self):
-        # User placed ffmpeg.exe in 'models' folder
-        models_ffmpeg = os.path.join(os.getcwd(), "models")
-        if os.path.exists(os.path.join(models_ffmpeg, "ffmpeg.exe")):
-             print(f"Found local FFmpeg at {models_ffmpeg}")
-             os.environ["PATH"] += os.pathsep + models_ffmpeg
-        
-        # Fallback to ffmpeg folder
-        local_ffmpeg = os.path.join(os.getcwd(), "ffmpeg") 
-        if os.path.exists(os.path.join(local_ffmpeg, "ffmpeg.exe")):
-             os.environ["PATH"] += os.pathsep + local_ffmpeg
-
-    def load_model(self):
-        if not self.model:
-            print("Loading Whisper Model...")
-            try:
-                # device="cpu" or "cuda" if available
-                self.model = WhisperModel(self.model_path, device="cpu", compute_type="int8")
-                print("Whisper Model Loaded!")
-            except Exception as e:
-                print(f"Error loading Whisper: {e}")
 
     def transcribe(self, file_path: str) -> str:
-        if not self.model:
-            self.load_model()
-        
-        if not self.model:
-            return "Error: Model not loaded."
+        if not hasattr(settings, 'GEMINI_API_KEY') or not settings.GEMINI_API_KEY:
+            return "Error: Gemini API Key not configured."
 
+        uploaded_file = None
         try:
-            segments, info = self.model.transcribe(file_path, beam_size=5)
-            text = " ".join([segment.text for segment in segments])
-            return text.strip()
+            client = _get_client()
+
+            # Upload audio file to Gemini
+            with open(file_path, "rb") as f:
+                uploaded_file = client.files.upload(
+                    file=f,
+                    config={"mime_type": "audio/webm"},
+                )
+            logger.info("Uploaded audio file: %s", uploaded_file.name)
+
+            response = client.models.generate_content(
+                model=MODEL,
+                contents=[
+                    "Transcribe the speech in this audio file exactly as spoken. Return only the transcript.",
+                    uploaded_file,
+                ],
+            )
+            return response.text.strip()
+
         except Exception as e:
-            print(f"Transcription error: {e}")
+            logger.error("Transcription error: %s", e)
             return ""
+        finally:
+            if uploaded_file:
+                try:
+                    _get_client().files.delete(name=uploaded_file.name)
+                except Exception as cleanup_err:
+                    logger.error("Failed to delete remote file: %s", cleanup_err)
+
 
 stt_service = STTService()

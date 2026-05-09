@@ -1,200 +1,158 @@
-from datetime import datetime
 import json
-from sqlalchemy.orm import Session
-from app.db.session import SessionLocal
-from app.models import Interview, Question, Answer, InterviewStatus
+from datetime import datetime
+from typing import Optional, List, Dict, Any
+
+from app.models.interview import Interview, Question, Answer, InterviewStatus
+
 
 class SessionService:
-    def __init__(self):
-        pass
+    """
+    Manages interview sessions persisted in MongoDB via Beanie.
+    All methods are async — call them with `await`.
+    """
 
-    def get_db(self):
-        return SessionLocal()
+    # ── Create ──────────────────────────────────────────────────────────────
 
-    def create_session(self, session_id: str, role: str, difficulty: str):
-        db = self.get_db()
-        try:
-            # Prepare initial state
-            initial_state = {
-                "current_stage": "technical_deep_dive",
-                "question_count": 0,
-                "dynamic_difficulty": difficulty,
-                "topics_covered": [],
-                "performance_profile": {
-                    "strong_areas": [],
-                    "weak_areas": [],
-                    "critical_mistakes": []
-                },
-                "next_focus": "Start the interview"
-            }
+    async def create_session(self, session_id: str, role: str, difficulty: str) -> None:
+        """Create a new interview document in MongoDB."""
+        initial_state: Dict[str, Any] = {
+            "current_stage": "technical_deep_dive",
+            "question_count": 0,
+            "dynamic_difficulty": difficulty,
+            "topics_covered": [],
+            "performance_profile": {
+                "strong_areas": [],
+                "weak_areas": [],
+                "critical_mistakes": [],
+            },
+            "next_focus": "Start the interview",
+            "interaction_log": [],
+        }
+        interview = Interview(
+            session_id=session_id,
+            role=role,
+            difficulty=difficulty,
+            status=InterviewStatus.IN_PROGRESS,
+            current_state=initial_state,
+        )
+        await interview.insert()
 
-            # Check if user exists? skipping for now as user api is not ready
-            # Assuming guest or NULL user_id for now
-            new_interview = Interview(
-                id=session_id,
-                role=role,
-                difficulty=difficulty,
-                status=InterviewStatus.IN_PROGRESS,
-                current_state=json.dumps(initial_state)
-            )
-            db.add(new_interview)
-            db.commit()
-        finally:
-            db.close()
+    # ── Read ─────────────────────────────────────────────────────────────────
 
-    def get_session(self, session_id: str):
-        db = self.get_db()
-        try:
-            interview = db.query(Interview).filter(Interview.id == session_id).first()
-            if not interview:
-                return None
-            
-            # Construct dictionary to match old API expectation for now
-            history = []
-            # Sort questions by order
-            questions = sorted(interview.questions, key=lambda q: q.order)
-            
-            for q in questions:
-                history.append({"role": "ai", "content": q.content})
-                if q.answer:
-                    history.append({"role": "user", "content": q.answer.content})
-            
-            return {
-                "id": str(interview.id),
-                "role": interview.role,
-                "difficulty": interview.difficulty,
-                "history": history,
-                "start_time": interview.start_time.isoformat() if interview.start_time else None,
-                "end_time": interview.end_time.isoformat() if interview.end_time else None,
-                "feedback": interview.overall_feedback,
-                "current_state": json.loads(interview.current_state) if interview.current_state else {}
-            }
-        finally:
-            db.close()
-
-    def get_state(self, session_id: str):
-        db = self.get_db()
-        try:
-            interview = db.query(Interview).filter(Interview.id == session_id).first()
-            if interview and interview.current_state:
-                return json.loads(interview.current_state)
+    async def get_session(self, session_id: str) -> Optional[Dict[str, Any]]:
+        """Return a session dict (compatible with the existing endpoint API)."""
+        interview = await Interview.find_one(Interview.session_id == session_id)
+        if not interview:
             return None
-        finally:
-            db.close()
 
-    def update_state(self, session_id: str, new_state: dict):
-        db = self.get_db()
-        try:
-            interview = db.query(Interview).filter(Interview.id == session_id).first()
-            if interview:
-                interview.current_state = json.dumps(new_state)
-                db.commit()
-        finally:
-            db.close()
+        # Rebuild a flat history list: [ai question, user answer, ai question, …]
+        history: List[Dict[str, str]] = []
+        for q in sorted(interview.questions, key=lambda x: x.order):
+            history.append({"role": "ai", "content": q.content})
+            if q.answer:
+                history.append({"role": "user", "content": q.answer.content})
 
-    def add_history(self, session_id: str, role: str, content: str):
-        db = self.get_db()
-        try:
-            interview = db.query(Interview).filter(Interview.id == session_id).first()
-            if not interview:
-                return
+        return {
+            "id": interview.session_id,
+            "role": interview.role,
+            "difficulty": interview.difficulty,
+            "history": history,
+            "start_time": interview.start_time.isoformat() if interview.start_time else None,
+            "end_time": interview.end_time.isoformat() if interview.end_time else None,
+            "feedback": interview.overall_feedback,
+            "current_state": interview.current_state or {},
+        }
 
-            if role == "ai":
-                # It's a question
-                current_count = db.query(Question).filter(Question.interview_id == session_id).count()
-                new_question = Question(
-                    interview_id=session_id,
-                    content=content,
-                    order=current_count + 1
-                )
-                db.add(new_question)
-            
-            elif role == "user":
-                # It's an answer to the LATEST question
-                # Find the latest question which doesn't have an answer?
-                # Or just the one with highest order
-                last_question = db.query(Question)\
-                    .filter(Question.interview_id == session_id)\
-                    .order_by(Question.order.desc())\
-                    .first()
-                
-                if last_question:
-                    # Check if already answered?
-                    if not last_question.answer:
-                        new_answer = Answer(
-                            question_id=last_question.id,
-                            content=content
-                        )
-                        db.add(new_answer)
-            
-            db.commit()
-        finally:
-            db.close()
+    async def get_state(self, session_id: str) -> Optional[Dict[str, Any]]:
+        """Return the current dynamic state dict for a session."""
+        interview = await Interview.find_one(Interview.session_id == session_id)
+        if interview:
+            return interview.current_state
+        return None
 
-    def update_last_answer_score(self, session_id: str, score: float):
-        db = self.get_db()
-        try:
-            # Find the latest answer for this session
-            # We assume the answer was just added
-            last_question = db.query(Question)\
-                .filter(Question.interview_id == session_id)\
-                .order_by(Question.order.desc())\
-                .first()
-            
-            if last_question and last_question.answer:
-                last_question.answer.ai_score = score
-                db.commit()
-        finally:
-            db.close()
+    async def get_all_sessions(self) -> List[Dict[str, Any]]:
+        """Return a summary list of all interviews, newest first."""
+        interviews = await Interview.find_all().sort(-Interview.start_time).to_list()
+        return [
+            {
+                "id": i.session_id,
+                "role": i.role,
+                "difficulty": i.difficulty,
+                "start_time": i.start_time.isoformat() if i.start_time else None,
+                "end_time": i.end_time.isoformat() if i.end_time else None,
+                "feedback": i.overall_feedback,
+            }
+            for i in interviews
+        ]
 
-    def get_all_sessions(self):
-        db = self.get_db()
-        try:
-            interviews = db.query(Interview).order_by(Interview.start_time.desc()).all()
-            return [
-                {
-                    "id": str(i.id),
-                    "role": i.role,
-                    "difficulty": i.difficulty,
-                    "start_time": i.start_time.isoformat() if i.start_time else None,
-                    "end_time": i.end_time.isoformat() if i.end_time else None,
-                    "feedback": i.overall_feedback
-                }
-                for i in interviews
-            ]
-        finally:
-            db.close()
+    # ── Update ───────────────────────────────────────────────────────────────
 
-    def complete_session(self, session_id: str, feedback: str):
-        db = self.get_db()
-        try:
-            interview = db.query(Interview).filter(Interview.id == session_id).first()
-            if interview:
-                interview.end_time = datetime.now()
-                interview.overall_feedback = feedback
-                interview.status = InterviewStatus.COMPLETED
-                db.commit()
-        finally:
-            db.close()
+    async def update_state(self, session_id: str, new_state: Dict[str, Any]) -> None:
+        """Persist an updated state dict back to MongoDB."""
+        interview = await Interview.find_one(Interview.session_id == session_id)
+        if interview:
+            interview.current_state = new_state
+            await interview.save()
 
-    def get_average_score(self, session_id: str) -> float:
-        db = self.get_db()
-        try:
-            # Join Interview -> Question -> Answer
-            # Actually easier to just query Answers for questions in this interview
-            # But we need to link Answer -> Question -> Interview
-            scores = db.query(Answer.ai_score)\
-                .join(Question)\
-                .filter(Question.interview_id == session_id)\
-                .filter(Answer.ai_score != None)\
-                .all()
-            
-            if not scores:
-                return 0.0
-            
-            total = sum([s[0] for s in scores])
-            return round(total / len(scores), 1)
-        finally:
-            db.close()
+    async def add_history(self, session_id: str, role: str, content: str) -> None:
+        """
+        Add an AI question or a user answer to the interview's embedded list.
+        - role == "ai"   → append a new Question
+        - role == "user" → set the Answer on the latest unanswered Question
+        """
+        interview = await Interview.find_one(Interview.session_id == session_id)
+        if not interview:
+            return
+
+        if role == "ai":
+            new_order = len(interview.questions) + 1
+            interview.questions.append(
+                Question(content=content, order=new_order)
+            )
+        elif role == "user":
+            # Find the latest question that has no answer yet
+            for q in reversed(interview.questions):
+                if q.answer is None:
+                    q.answer = Answer(content=content)
+                    break
+
+        await interview.save()
+
+    async def update_last_answer_score(self, session_id: str, score: float) -> None:
+        """Set the AI score on the most recently answered question."""
+        interview = await Interview.find_one(Interview.session_id == session_id)
+        if not interview:
+            return
+        # Walk in reverse to find the last answered question
+        for q in reversed(interview.questions):
+            if q.answer is not None:
+                q.answer.ai_score = score
+                break
+        await interview.save()
+
+    async def complete_session(self, session_id: str, feedback: str) -> None:
+        """Mark the interview as completed and store final feedback."""
+        interview = await Interview.find_one(Interview.session_id == session_id)
+        if interview:
+            interview.end_time = datetime.utcnow()
+            interview.overall_feedback = feedback
+            interview.status = InterviewStatus.COMPLETED
+            await interview.save()
+
+    async def get_average_score(self, session_id: str) -> float:
+        """Compute the average AI score across all answered questions."""
+        interview = await Interview.find_one(Interview.session_id == session_id)
+        if not interview:
+            return 0.0
+
+        scores = [
+            q.answer.ai_score
+            for q in interview.questions
+            if q.answer and q.answer.ai_score is not None
+        ]
+        if not scores:
+            return 0.0
+        return round(sum(scores) / len(scores), 1)
+
 
 session_service = SessionService()

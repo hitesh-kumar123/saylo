@@ -1,25 +1,20 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  color-scheme: dark;
+  color-scheme: light;
 }
 
 body {
-  @apply bg-[#0b1120] text-slate-100 font-sans antialiased;
+  @apply bg-paper text-ink font-sans antialiased;
   min-height: 100vh;
+  overflow-x: hidden;
 }
 
-/* Glassmorphism Utilities */
-.glass {
-  @apply bg-white/5 backdrop-blur-lg border border-white/10;
-}
-
-.glass-card {
-  @apply glass rounded-xl shadow-xl transition-all duration-300 hover:border-primary-500/30;
+/* Saylo Premium Utilities */
+.saylo-card {
+  @apply bg-cream/80 border border-ink/10 rounded-sm transition-all duration-300 hover:border-ink/30;
 }
 
 /* Scrollbar */
@@ -27,8 +22,8 @@ body {
   width: 8px;
 }
 ::-webkit-scrollbar-track {
-  @apply bg-dark-bg;
+  @apply bg-paper;
 }
 ::-webkit-scrollbar-thumb {
-  @apply bg-dark-border rounded-full hover:bg-slate-500;
+  @apply bg-ink/20 hover:bg-ink/40;
 }

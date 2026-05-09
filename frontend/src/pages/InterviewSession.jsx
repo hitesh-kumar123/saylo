@@ -185,37 +185,37 @@ export default function InterviewSession() {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-dark-bg text-white overflow-hidden">
+    <div className="flex flex-col h-screen bg-paper text-ink overflow-hidden font-sans">
       {/* Top Bar */}
-      <header className="h-16 border-b border-white/5 bg-dark-card flex items-center justify-between px-6 z-20 flex-shrink-0">
+      <header className="h-16 border-b border-ink/10 bg-cream flex items-center justify-between px-6 z-20 flex-shrink-0">
         <div className="flex items-center gap-4">
           <button
             onClick={() => navigate('/dashboard')}
-            className="p-2 hover:bg-white/5 rounded-lg text-slate-400 hover:text-white transition-colors"
+            className="p-2 hover:bg-ink/5 rounded-sm text-ink/60 hover:text-ink transition-colors"
           >
             <ChevronLeft className="w-5 h-5" />
           </button>
           <div>
-            <h1 className="font-semibold text-lg">Live Interview</h1>
-            <div className="flex items-center gap-2 text-xs text-slate-400">
-              <span className="bg-green-500/10 text-green-400 px-2 py-0.5 rounded border border-green-500/20 flex items-center gap-1">
-                <span className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse" />
+            <h1 className="font-display tracking-wide text-xl">Live Interview</h1>
+            <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-muted mt-0.5">
+              <span className="bg-green-100 text-green-700 px-1.5 py-0.5 border border-green-200 flex items-center gap-1">
+                <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
                 Live
               </span>
-              <span className="text-slate-500">Session #{id?.substring(0, 6)}</span>
+              <span>Session #{id?.substring(0, 6)}</span>
             </div>
           </div>
         </div>
 
         <div className="flex items-center gap-4">
-          <div className={`flex items-center gap-2 font-mono text-lg font-medium ${timeLeft < 300 ? 'text-red-400 animate-pulse' : 'text-slate-300'}`}>
+          <div className={`flex items-center gap-2 font-mono text-lg font-medium ${timeLeft < 300 ? 'text-red-600 animate-pulse' : 'text-ink'}`}>
             <Timer className="w-4 h-4" />
             {formatTime(timeLeft)}
           </div>
           <button
             onClick={handleEnd}
             disabled={isEnding || isCompleted}
-            className="px-5 py-2 rounded-lg bg-red-600/80 hover:bg-red-600 text-white font-semibold transition-all flex items-center gap-2 text-sm disabled:opacity-40 disabled:cursor-not-allowed"
+            className="px-5 py-2.5 rounded-sm bg-red-600 hover:bg-red-700 text-white font-bold uppercase tracking-widest transition-all flex items-center gap-2 text-xs disabled:opacity-40 disabled:cursor-not-allowed"
           >
             {isEnding ? <Loader2 className="w-4 h-4 animate-spin" /> : <Square className="w-4 h-4" />}
             End Interview
@@ -224,7 +224,7 @@ export default function InterviewSession() {
       </header>
 
       {/* Chat Area */}
-      <div className="flex-1 overflow-y-auto px-4 py-6 space-y-5">
+      <div className="flex-1 overflow-y-auto px-4 py-8 space-y-6 max-w-4xl mx-auto w-full">
         <AnimatePresence initial={false}>
           {messages.map((msg, i) => (
             <motion.div
@@ -235,22 +235,22 @@ export default function InterviewSession() {
               className={`flex items-start gap-3 max-w-3xl ${msg.role === 'user' ? 'ml-auto flex-row-reverse' : ''}`}
             >
               {/* Avatar */}
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
+              <div className={`w-8 h-8 rounded-sm flex items-center justify-center flex-shrink-0 ${
                 msg.role === 'ai'
-                  ? 'bg-primary-500/20 border border-primary-500/30'
-                  : 'bg-white/10 border border-white/10'
+                  ? 'bg-ink border border-ink text-paper'
+                  : 'bg-cream border border-ink/10 text-ink'
               }`}>
                 {msg.role === 'ai'
-                  ? <Bot className="w-4 h-4 text-primary-400" />
-                  : <User className="w-4 h-4 text-slate-300" />
+                  ? <Bot className="w-4 h-4" />
+                  : <User className="w-4 h-4" />
                 }
               </div>
 
               {/* Bubble */}
-              <div className={`px-4 py-3 rounded-2xl text-sm leading-relaxed max-w-[75%] ${
+              <div className={`px-5 py-3.5 text-sm leading-relaxed max-w-[85%] rounded-sm ${
                 msg.role === 'ai'
-                  ? 'bg-white/[0.06] border border-white/[0.07] text-slate-200 rounded-tl-sm'
-                  : 'bg-primary-600/30 border border-primary-500/20 text-white rounded-tr-sm'
+                  ? 'bg-white border border-ink/10 text-ink shadow-sm'
+                  : 'bg-ink border border-ink text-paper shadow-sm'
               }`}>
                 {msg.content}
               </div>
@@ -265,14 +265,14 @@ export default function InterviewSession() {
               animate={{ opacity: 1, y: 0 }}
               className="flex items-start gap-3 max-w-3xl"
             >
-              <div className="w-8 h-8 rounded-full bg-primary-500/20 border border-primary-500/30 flex items-center justify-center flex-shrink-0">
-                <Bot className="w-4 h-4 text-primary-400" />
+              <div className="w-8 h-8 rounded-sm bg-ink flex items-center justify-center flex-shrink-0">
+                <Bot className="w-4 h-4 text-paper" />
               </div>
-              <div className="px-4 py-3 rounded-2xl rounded-tl-sm bg-white/[0.06] border border-white/[0.07]">
+              <div className="px-5 py-3.5 rounded-sm bg-white border border-ink/10 shadow-sm">
                 <div className="flex gap-1.5 items-center h-4">
-                  <span className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                  <span className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                  <span className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                  <span className="w-2 h-2 bg-ink/30 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                  <span className="w-2 h-2 bg-ink/30 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                  <span className="w-2 h-2 bg-ink/30 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
                 </div>
               </div>
             </motion.div>
@@ -282,7 +282,7 @@ export default function InterviewSession() {
       </div>
 
       {/* Input Bar */}
-      <div className="flex-shrink-0 border-t border-white/5 bg-dark-card p-4">
+      <div className="flex-shrink-0 border-t border-ink/10 bg-cream p-4">
         <div className={`flex items-end gap-3 max-w-4xl mx-auto transition-opacity ${isCompleted ? 'opacity-40 pointer-events-none' : ''}`}>
           <textarea
             value={answer}
@@ -290,7 +290,7 @@ export default function InterviewSession() {
             onKeyDown={handleKeyDown}
             placeholder="Type your answer… (Enter to send, Shift+Enter for new line)"
             rows={2}
-            className="flex-1 bg-white/[0.05] border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-primary-500/50 resize-none"
+            className="flex-1 bg-white border border-ink/10 rounded-sm px-4 py-3 text-sm text-ink placeholder-ink/40 focus:outline-none focus:border-ink resize-none shadow-sm transition-colors"
           />
 
           {/* Mic button */}
@@ -300,10 +300,10 @@ export default function InterviewSession() {
             onTouchStart={startRecording}
             onTouchEnd={stopRecording}
             title="Hold to record"
-            className={`p-3 rounded-xl border transition-all ${
+            className={`p-3.5 rounded-sm border transition-all ${
               isRecording
-                ? 'bg-red-500 border-red-400 text-white animate-pulse'
-                : 'bg-white/5 border-white/10 text-slate-400 hover:text-white hover:bg-white/10'
+                ? 'bg-red-600 border-red-600 text-white animate-pulse shadow-sm'
+                : 'bg-white border-ink/10 text-ink/60 hover:text-ink hover:border-ink/30 shadow-sm'
             }`}
           >
             {isRecording ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
@@ -313,13 +313,13 @@ export default function InterviewSession() {
           <button
             onClick={handleSend}
             disabled={!answer.trim() || isSending || isCompleted}
-            className="p-3 rounded-xl bg-primary-600 hover:bg-primary-500 text-white border border-primary-500/50 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+            className="p-3.5 rounded-sm bg-ink hover:bg-ink/90 text-paper transition-all disabled:opacity-40 disabled:cursor-not-allowed shadow-sm"
           >
             {isSending ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
           </button>
         </div>
 
-        <p className="text-center text-xs text-slate-600 mt-2">
+        <p className="text-center text-[10px] uppercase tracking-widest font-bold text-muted mt-3">
           {isRecording ? '🔴 Recording… release to send' : 'Hold mic to record · Enter to send'}
         </p>
       </div>

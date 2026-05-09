@@ -7,6 +7,16 @@ export default {
   theme: {
     extend: {
       colors: {
+        ink: '#0A0A0B',
+        paper: '#F5F2EC',
+        cream: '#EDE9E0',
+        warm: '#E8E2D5',
+        sayloAccent: '#C8FF00',
+        sayloAccent2: '#FF4B2B',
+        muted: '#8A8578',
+        border: 'rgba(10,10,11,0.12)',
+        
+        // Keeping legacy primary/accent for backwards compatibility but not using them mostly
         primary: {
           50: '#f0f9ff',
           100: '#e0f2fe',
@@ -20,19 +30,6 @@ export default {
           900: '#0c4a6e',
           950: '#082f49',
         },
-        accent: {
-          50: '#ecfeff',
-          100: '#cffafe',
-          200: '#a5f3fc',
-          300: '#67e8f9',
-          400: '#22d3ee',
-          500: '#06b6d4',
-          600: '#0891b2',
-          700: '#0e7490',
-          800: '#155e75',
-          900: '#164e63',
-          950: '#083344',
-        },
         dark: {
           bg: '#0f172a',
           card: '#1e293b',
@@ -40,7 +37,9 @@ export default {
         }
       },
       fontFamily: {
-        sans: ['Inter', 'sans-serif'],
+        sans: ['Instrument Sans', 'sans-serif'],
+        display: ['Bebas Neue', 'sans-serif'],
+        serif: ['Instrument Serif', 'serif'],
       },
       animation: {
         'glow': 'glow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',

@@ -7,19 +7,19 @@ import { cn } from '../lib/utils';
 
 const FeedbackCard = ({ title, items, type }) => (
   <div className={cn(
-    'p-5 rounded-xl border',
-    type === 'strength' ? 'bg-green-500/5 border-green-500/20' : 'bg-yellow-500/5 border-yellow-500/20'
+    'p-6 rounded-sm border',
+    type === 'strength' ? 'bg-green-50 border-green-200' : 'bg-yellow-50 border-yellow-200'
   )}>
     <h3 className={cn(
-      'font-semibold mb-3 flex items-center gap-2 text-sm uppercase tracking-wider',
-      type === 'strength' ? 'text-green-400' : 'text-yellow-400'
+      'font-bold mb-4 flex items-center gap-2 text-xs uppercase tracking-widest',
+      type === 'strength' ? 'text-green-700' : 'text-yellow-700'
     )}>
       {type === 'strength' ? <CheckCircle className="w-4 h-4" /> : <AlertTriangle className="w-4 h-4" />}
       {title}
     </h3>
-    <ul className="space-y-2">
+    <ul className="space-y-3">
       {(items || []).map((item, i) => (
-        <li key={i} className="flex items-start gap-2 text-sm text-slate-300">
+        <li key={i} className="flex items-start gap-3 text-sm font-medium text-ink/80">
           <span className={cn(
             'mt-1.5 w-1.5 h-1.5 rounded-full flex-shrink-0',
             type === 'strength' ? 'bg-green-500' : 'bg-yellow-500'
@@ -39,10 +39,10 @@ const getScoreLabel = (score) => {
 };
 
 const getScoreColor = (score) => {
-  if (score >= 8) return '#10b981';
-  if (score >= 6) return '#6366f1';
-  if (score >= 4) return '#f59e0b';
-  return '#ef4444';
+  if (score >= 8) return '#16a34a'; // green-600
+  if (score >= 6) return '#0A0A0B'; // ink
+  if (score >= 4) return '#d97706'; // amber-600
+  return '#dc2626'; // red-600
 };
 
 export default function Results() {
@@ -55,22 +55,22 @@ export default function Results() {
   // Fallback if navigated directly without state
   if (!feedback) {
     return (
-      <div className="max-w-3xl mx-auto py-16 text-center">
-        <div className="w-20 h-20 rounded-full bg-yellow-500/10 border border-yellow-500/20 flex items-center justify-center mx-auto mb-6">
-          <Target className="w-10 h-10 text-yellow-400" />
+      <div className="max-w-3xl mx-auto py-20 text-center saylo-card mt-10">
+        <div className="w-24 h-24 rounded-full bg-yellow-100 border border-yellow-200 flex items-center justify-center mx-auto mb-6">
+          <Target className="w-12 h-12 text-yellow-600" />
         </div>
-        <h1 className="text-2xl font-bold mb-3">Results Not Found</h1>
-        <p className="text-slate-400 mb-8">
+        <h1 className="font-display text-4xl mb-3 text-ink">Results Not Found</h1>
+        <p className="text-muted font-medium mb-10">
           No feedback data was found for this session. The interview may not have been completed.
         </p>
-        <div className="flex gap-3 justify-center">
+        <div className="flex gap-4 justify-center">
           <Link to="/dashboard">
-            <button className="px-6 py-3 rounded-xl bg-primary-600 hover:bg-primary-500 text-white font-semibold transition-all flex items-center gap-2">
+            <button className="px-8 py-3 rounded-sm bg-ink hover:bg-ink/90 text-paper font-bold uppercase tracking-widest transition-all flex items-center gap-2 text-xs">
               <Home className="w-4 h-4" /> Dashboard
             </button>
           </Link>
           <Link to="/interview/setup">
-            <button className="px-6 py-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 font-semibold transition-all flex items-center gap-2">
+            <button className="px-8 py-3 rounded-sm bg-white hover:bg-cream border border-ink/20 text-ink font-bold uppercase tracking-widest transition-all flex items-center gap-2 text-xs">
               <RotateCcw className="w-4 h-4" /> Try Again
             </button>
           </Link>
@@ -85,77 +85,79 @@ export default function Results() {
   const pieData = [{ value: overallScore * 10 }, { value: 100 - overallScore * 10 }];
 
   return (
-    <div className="max-w-5xl mx-auto py-8 px-4">
+    <div className="max-w-5xl mx-auto py-10 px-4 pb-20">
       {/* Header */}
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-6 pb-6 border-b border-ink/10">
         <div>
-          <h1 className="text-3xl font-bold mb-1">Session Results</h1>
-          <p className="text-slate-400">
+          <h1 className="font-display text-5xl mb-2 text-ink">Session Results</h1>
+          <p className="text-sm font-bold uppercase tracking-widest text-muted mt-1">
             Session #{id?.substring(0, 6)} · {feedback.difficulty_trend ? `Trend: ${feedback.difficulty_trend}` : 'AI Interview'}
           </p>
         </div>
         <div className="flex gap-3">
           <Link to="/interview/setup">
-            <button className="px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/5 text-slate-300 text-sm font-medium transition-all flex items-center gap-2">
+            <button className="px-6 py-3 rounded-sm bg-paper hover:bg-white border border-ink/20 text-ink text-xs font-bold uppercase tracking-widest transition-all flex items-center gap-2">
               <RotateCcw className="w-4 h-4" /> Practice Again
             </button>
           </Link>
           <Link to="/dashboard">
-            <button className="px-4 py-2 rounded-lg bg-primary-600 hover:bg-primary-500 text-white font-semibold transition-all flex items-center gap-2 text-sm">
+            <button className="px-6 py-3 rounded-sm bg-ink hover:bg-ink/90 text-paper font-bold uppercase tracking-widest transition-all flex items-center gap-2 text-xs">
               <Home className="w-4 h-4" /> Dashboard
             </button>
           </Link>
         </div>
       </div>
 
-      <div className="grid md:grid-cols-3 gap-6 mb-6">
+      <div className="grid md:grid-cols-3 gap-8 mb-8">
         {/* Score Donut */}
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="md:col-span-1 bg-white/[0.04] border border-white/[0.07] rounded-2xl p-8 flex flex-col items-center justify-center text-center relative overflow-hidden"
+          className="md:col-span-1 saylo-card p-8 flex flex-col items-center justify-center text-center relative overflow-hidden"
         >
-          <div className="absolute inset-0 blur-[80px]" style={{ background: `${scoreColor}10` }} />
-          <div className="relative w-44 h-44 mb-4">
+          <div className="absolute inset-0 blur-[80px] opacity-20" style={{ background: scoreColor }} />
+          <div className="relative w-48 h-48 mb-6">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
                   data={pieData}
-                  innerRadius={58}
-                  outerRadius={78}
+                  innerRadius={70}
+                  outerRadius={90}
                   startAngle={90}
                   endAngle={-270}
                   dataKey="value"
+                  stroke="none"
                 >
                   <Cell fill={scoreColor} />
-                  <Cell fill="#1e293b" />
+                  <Cell fill="#e5e5e5" /> {/* light gray track */}
                 </Pie>
               </PieChart>
             </ResponsiveContainer>
             <div className="absolute inset-0 flex flex-col items-center justify-center">
-              <span className="text-4xl font-bold text-white">{overallScore}</span>
-              <span className="text-xs text-slate-400 uppercase tracking-widest mt-1">/10</span>
+              <span className="font-display text-6xl text-ink leading-none">{overallScore}</span>
+              <span className="text-[10px] font-bold text-muted uppercase tracking-widest mt-1">/10</span>
             </div>
           </div>
-          <h3 className="text-lg font-bold text-white">{scoreLabel}</h3>
-          <p className="text-sm text-slate-400 mt-1">Overall Score</p>
+          <h3 className="font-display text-3xl tracking-wide text-ink">{scoreLabel}</h3>
+          <p className="text-xs font-bold uppercase tracking-widest text-muted mt-2">Overall Score</p>
         </motion.div>
 
         {/* Stats */}
-        <div className="md:col-span-2 space-y-4">
+        <div className="md:col-span-2 space-y-6">
           {/* Verdict */}
           {feedback.final_verdict && (
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
-              className="p-5 rounded-xl bg-primary-500/10 border border-primary-500/20"
+              className="p-8 rounded-sm bg-ink text-paper relative overflow-hidden"
             >
-              <div className="flex items-start gap-3">
-                <Star className="w-5 h-5 text-primary-400 flex-shrink-0 mt-0.5" />
+              <div className="absolute -right-4 -bottom-4 w-32 h-32 bg-sayloAccent rounded-full blur-3xl opacity-20" />
+              <div className="flex items-start gap-4 relative z-10">
+                <Star className="w-6 h-6 text-sayloAccent flex-shrink-0 mt-0.5" />
                 <div>
-                  <h4 className="text-sm font-semibold text-primary-300 uppercase tracking-wider mb-1">Final Verdict</h4>
-                  <p className="text-slate-200 text-sm leading-relaxed">{feedback.final_verdict}</p>
+                  <h4 className="text-xs font-bold text-sayloAccent uppercase tracking-widest mb-3">Final Verdict</h4>
+                  <p className="text-paper/90 text-sm leading-loose font-medium">{feedback.final_verdict}</p>
                 </div>
               </div>
             </motion.div>
@@ -167,12 +169,12 @@ export default function Results() {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.15 }}
-              className="p-4 rounded-xl bg-white/[0.03] border border-white/[0.06] flex items-center gap-3"
+              className="p-6 rounded-sm bg-white border border-ink/10 flex items-center gap-4"
             >
-              <TrendingUp className="w-5 h-5 text-slate-400" />
+              <TrendingUp className="w-6 h-6 text-ink/50" />
               <div>
-                <span className="text-xs text-slate-500 uppercase tracking-wider">Difficulty Trend</span>
-                <p className="text-sm font-medium text-white capitalize">{feedback.difficulty_trend}</p>
+                <span className="text-[10px] font-bold text-muted uppercase tracking-widest">Difficulty Trend</span>
+                <p className="text-sm font-bold text-ink capitalize mt-1">{feedback.difficulty_trend}</p>
               </div>
             </motion.div>
           )}
@@ -180,7 +182,7 @@ export default function Results() {
       </div>
 
       {/* Strengths & Weaknesses */}
-      <div className="grid md:grid-cols-2 gap-4 mb-6">
+      <div className="grid md:grid-cols-2 gap-8 mb-8">
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
           <FeedbackCard type="strength" title="Key Strengths" items={feedback.strengths} />
         </motion.div>
@@ -195,15 +197,15 @@ export default function Results() {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
-          className="p-5 rounded-xl bg-white/[0.03] border border-white/[0.06]"
+          className="saylo-card p-8"
         >
-          <h3 className="font-semibold text-slate-200 mb-4 flex items-center gap-2 text-sm uppercase tracking-wider">
-            <MessageSquare className="w-4 h-4 text-primary-400" /> Actionable Improvement Tips
+          <h3 className="font-display text-3xl tracking-wide text-ink mb-6 flex items-center gap-3">
+            <MessageSquare className="w-6 h-6 text-ink/50" /> Actionable Improvement Tips
           </h3>
-          <ul className="space-y-3">
+          <ul className="space-y-4">
             {feedback.improvement_tips.map((tip, i) => (
-              <li key={i} className="flex items-start gap-3 text-sm text-slate-300">
-                <span className="mt-1 w-5 h-5 rounded-full bg-primary-500/20 text-primary-400 text-xs flex items-center justify-center flex-shrink-0 font-bold">
+              <li key={i} className="flex items-start gap-4 text-sm font-medium text-ink/80 leading-relaxed">
+                <span className="mt-0.5 w-6 h-6 rounded-sm bg-cream border border-ink/10 text-ink text-xs flex items-center justify-center flex-shrink-0 font-bold font-display">
                   {i + 1}
                 </span>
                 {tip}

@@ -1,196 +1,138 @@
-# SayLO — AI Interview Simulator
+<div align="center">
+  <img src="https://assets.puter.site/doge.jpeg" alt="SayLO Logo" width="120" style="border-radius: 50%; display: none;" />
+  <h1>🎙️ SayLO - AI Interview Prep Platform</h1>
+  <p><strong>Master your interviews with a real-time, conversational AI interviewer.</strong></p>
+  
+  [![React](https://img.shields.io/badge/React-18-blue.svg)](https://reactjs.org/)
+  [![FastAPI](https://img.shields.io/badge/FastAPI-0.109-009688.svg)](https://fastapi.tiangolo.com/)
+  [![MongoDB](https://img.shields.io/badge/MongoDB-Latest-47A248.svg)](https://www.mongodb.com/)
+  [![Gemini](https://img.shields.io/badge/Google_Gemini-AI-FFD700.svg)](https://aistudio.google.com/)
+</div>
 
-SayLO is an open-source interview preparation platform that focuses on privacy and local-first AI processing. It provides simulated interviews, resume parsing, video interviews (via Jitsi), and performance analytics.
+<br />
 
-Clean, modular architecture with separated frontend and backend.
+## 🌟 What is SayLO?
+**SayLO** is a modern, AI-powered platform designed to help freshers and professionals prepare for technical and behavioral interviews. Instead of just answering text prompts, SayLO provides a **hands-free Voice Assistant** experience. 
 
-## Quick Links
-
-- **Frontend**: `frontend/src/main.jsx`
-- **Backend**: `backend/app/main.py`
-- **Frontend Dev**: `cd frontend && npm run dev`
-- **Backend Dev**: `cd backend && run_server.bat`
-
-## Table of contents
-
-1. Features
-2. Getting started (dev & production)
-3. Environment variables
-4. Testing
-5. Project structure
-6. Ollama (optional) and AI
-7. Contributing
-8. Troubleshooting
+Powered by **Google's Gemini 2.0 AI**, SayLO dynamically evaluates your answers, adjusts difficulty, and provides deep, actionable feedback at the end of every session.
 
 ---
 
-## 1. Features
+## ✨ Key Features
+- 🗣️ **Real-time Voice Interviews:** Speak naturally. The AI listens, evaluates, and talks back using the browser's native Speech API.
+- 💬 **Interactive Text Chat Mode:** Prefer typing? SayLO supports rich text-based interviews as well.
+- 📄 **Resume Parsing:** Upload your resume and the AI will tailor the interview questions specifically to your experience.
+- 📊 **Deep Feedback & Scoring:** Get a final verdict, identify weak areas, and receive actionable tips to improve.
+- 🎨 **Premium Aesthetic UI:** A beautifully crafted "Paper & Ink" design system using Tailwind CSS and Framer Motion.
 
-- Local-first AI interview simulations (optional Ollama integration)
-- Resume parsing (client-side PDF processing)
-- Jitsi-based video interviews
-- Session storage using IndexedDB / Dexie
-- Performance metrics and analytics
+---
 
-## 2. Getting started
+## 🛠️ Tech Stack
 
-Prerequisites
+**Frontend:**
+- React (Vite)
+- Tailwind CSS
+- Framer Motion (Animations)
+- React Router DOM
+- Web Speech API (TTS / STT)
 
-- Node.js v18+ (Node 20 recommended)
-- Python 3.10+
-- npm (or pnpm/yarn)
+**Backend:**
+- Python & FastAPI
+- MongoDB (Motor Async Driver)
+- Google GenAI (Gemini API)
+- PyJWT (Authentication)
 
-Clone
+---
 
-```powershell
+## 🚀 Getting Started
+
+Follow these instructions to get a copy of the project up and running on your local machine for development and testing.
+
+### Prerequisites
+Make sure you have the following installed:
+- **Node.js** (v16+)
+- **Python** (v3.9+)
+- **MongoDB** (Running locally on port `27017`)
+- **Google Gemini API Key** ([Get it here for free](https://aistudio.google.com/))
+
+### 1. Clone the Repository
+```bash
 git clone https://github.com/hitesh-kumar123/saylo.git
 cd saylo
 ```
 
-Install
-
-**Frontend:**
-
-```powershell
-cd frontend
-npm install
-```
-
-**Backend:**
-
-```powershell
+### 2. Backend Setup
+```bash
+# Navigate to backend directory
 cd backend
+
+# Create a virtual environment
 python -m venv venv
-.\venv\Scripts\activate
+source venv/bin/activate  # On Windows use: venv\Scripts\activate
+
+# Install dependencies
 pip install -r requirements.txt
+
+# Create environment file
+touch .env
+```
+Add the following to your `backend/.env` file:
+```env
+MONGO_URI=mongodb://localhost:27017/saylo
+SECRET_KEY=your_super_secret_jwt_key
+GEMINI_API_KEY=your_google_gemini_api_key_here
+```
+Run the backend server:
+```bash
+uvicorn app.main:app --reload
+# Backend will run at http://localhost:8000
 ```
 
-Run locally (two terminals)
-
-- Terminal A — start backend:
-
-```powershell
-cd backend
-run_server.bat
-```
-
-- Terminal B — start frontend:
-
-```powershell
+### 3. Frontend Setup
+```bash
+# Open a new terminal and navigate to frontend directory
 cd frontend
+
+# Install dependencies
+npm install
+
+# Create environment file
+touch .env
+```
+Add the following to your `frontend/.env` file:
+```env
+VITE_API_URL=http://localhost:8000
+```
+Run the frontend development server:
+```bash
 npm run dev
+# Frontend will run at http://localhost:5174
 ```
 
-Open http://localhost:5173 in browser. Backend API runs at `http://localhost:3001/api`.
+---
 
-Production build
+## 🤝 How to Contribute
 
-```powershell
-npm run build
-npm run preview
-```
+We welcome contributions from freshers and experienced developers alike! This project is a great place to learn React, FastAPI, or AI integration.
 
-Notes
+### Contribution Steps
+1. **Fork** the repository.
+2. **Clone** your forked repo locally.
+3. Create a **new branch** for your feature (`git checkout -b feature/AmazingFeature`).
+4. Make your changes and **commit** them (`git commit -m 'Add some AmazingFeature'`).
+5. **Push** to the branch (`git push origin feature/AmazingFeature`).
+6. Open a **Pull Request**.
 
-- The repository doesn't run a single combined process by default. Running frontend and backend in separate shells is the simplest local workflow.
+### Beginner Friendly Areas to Contribute
+- **UI Tweaks:** Improving mobile responsiveness or adding new Tailwind animations.
+- **Frontend State:** Moving from context API to Redux/Zustand if needed.
+- **Backend Analytics:** Creating new FastAPI endpoints to track user progress over time.
+- **Speech Settings:** Adding UI controls to change the AI's speaking speed or voice type.
 
-## 3. Environment variables
+---
 
-Create a backend `.env` at project root and a frontend `.env.local` in the root for Vite variables.
+## 📝 License
+This project is open-source and available under the MIT License.
 
-Backend (`.env`)
-
-```
-PORT=3001
-JWT_SECRET=your_jwt_secret_here
-FRONTEND_ORIGIN=http://localhost:5173
-```
-
-Frontend (`.env.local`)
-
-```
-VITE_API_URL=http://localhost:3001/api
-VITE_JITSI_DOMAIN=meet.jit.si
-VITE_OLLAMA_HOST=http://localhost:11434
-VITE_OLLAMA_MODEL=llama3.2:3b
-```
-
-Tip: Vite only exposes variables prefixed with `VITE_` to client code.
-
-## 4. Testing
-
-Frontend tests with Vitest:
-
-```powershell
-npm test              # Watch mode
-npm run test:run      # Single run
-npm run test:ui       # UI dashboard
-npm run test:coverage # Coverage report
-```
-
-Test files: `frontend/src/test/`
-
-## Project Structure
-
-
-
-```
-saylo/
-├── frontend/                  # React + JavaScript frontend
-│   ├── src/
-│   │   ├── components/        # Reusable UI components
-│   │   ├── pages/             # Page components
-│   │   ├── services/          # API & utility services
-│   │   ├── store/             # Zustand state management
-│   │   ├── test/              # Frontend tests
-│   │   └── types/             # JSDoc types (optional)
-│   └── package.json
-│
-├── backend/                   # Python FastAPI
-│   ├── app/                   # App source
-│   │   ├── main.py            # Main entry point
-│   │   ├── api/               # API endpoints
-│   │   ├── core/              # Config & security
-│   │   ├── db/                # Database setup
-│   │   ├── models/            # SQLAlchemy models
-│   │   ├── schemas/           # Pydantic schemas
-│   │   └── services/          # Business logic
-│   ├── alembic/               # Database migrations
-│   ├── requirements.txt       # Python dependencies
-│   └── run_server.bat         # Start script
-│
-├── OLLAMA_SETUP.md            # Ollama setup guide
-└── package.json               # Root package config
-```
-
-## 6. Ollama (optional) — local LLM
-
-SayLO can integrate with Ollama to provide richer AI question generation and analysis. Ollama is optional — SayLO has fallback logic when Ollama is not available.
-
-Basic steps (high level):
-
-1. Install Ollama (download from https://ollama.ai or use the platform installer).
-2. Run `ollama serve` (default port `11434`).
-3. Pull a model, e.g. `ollama pull llama3.2:3b`.
-4. Configure `VITE_OLLAMA_HOST` and `VITE_OLLAMA_MODEL` in `.env.local`.
-
-See `OLLAMA_SETUP.md` for a more detailed guide and troubleshooting tips.
-
-## 7. Contributing
-
-Contribution guidelines:
-
-- Fork and use feature branches
-- Run tests and linters before opening a PR
-- Add tests for new functionality
-- Use clear, small commits
-
-## 8. Troubleshooting
-
-- If resume upload / parsing fails: check browser console for PDF.js worker errors and ensure the file is a valid PDF.
-- If video (Jitsi) fails to connect: verify browser camera/microphone permissions and that `VITE_JITSI_DOMAIN` is reachable.
-- If AI features are missing: either Ollama isn't running or the configured model isn't available (`ollama list`).
-
-If you encounter environment-specific issues, open an issue with a short reproduction and logs.
-
-
+---
+*Built with ❤️ for developers, by developers.*

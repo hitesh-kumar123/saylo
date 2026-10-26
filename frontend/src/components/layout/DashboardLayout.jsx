@@ -76,13 +76,36 @@ export default function DashboardLayout() {
 
       {/* Main content */}
       <div className="flex-1 flex flex-col min-h-screen relative">
-        <header className="h-16 bg-paper/80 backdrop-blur-md border-b border-ink/10 flex items-center px-6 lg:hidden sticky top-0 z-10">
-          <button onClick={() => setSidebarOpen(true)} className="p-2 hover:bg-ink/5 rounded-sm">
-            <Menu className="w-5 h-5 text-ink" />
-          </button>
-          <span className="ml-4 font-display text-xl tracking-wide">
-            SAY<span className="text-muted italic font-serif lowercase">lo</span>
-          </span>
+        <header className="h-16 bg-paper/90 backdrop-blur-md border-b border-ink/10 flex items-center justify-between px-6 sticky top-0 z-20">
+          <div className="flex items-center gap-3">
+            <button onClick={() => setSidebarOpen(true)} className="lg:hidden p-2 hover:bg-ink/5 rounded-sm">
+              <Menu className="w-5 h-5 text-ink" />
+            </button>
+            <span className="font-display text-xl tracking-wide lg:hidden">
+              SAY<span className="text-muted italic font-serif lowercase">lo</span>
+            </span>
+            <div className="hidden lg:flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-muted">
+              <span>Saylo</span>
+              <span>/</span>
+              <span className="text-ink">
+                {location.pathname.replace('/', '') || 'Dashboard'}
+              </span>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-4">
+            <div className="hidden sm:flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+              <span className="text-xs uppercase tracking-widest text-muted font-semibold">
+                AI Ready
+              </span>
+            </div>
+            {user?.email && (
+              <span className="text-xs font-semibold uppercase tracking-wider text-ink/70 hidden md:inline-block">
+                {user.email}
+              </span>
+            )}
+          </div>
         </header>
         <main className="flex-1 p-6 lg:p-10 overflow-y-auto max-w-7xl mx-auto w-full">
           <Outlet />

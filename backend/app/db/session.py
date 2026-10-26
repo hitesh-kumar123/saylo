@@ -1,4 +1,4 @@
-from motor.motor_asyncio import AsyncIOMotorClient
+from pymongo import AsyncMongoClient
 from beanie import init_beanie
 from app.core.config import settings
 
@@ -8,11 +8,15 @@ from app.models.interview import Interview
 from app.models.resume import Resume
 
 async def init_db():
-    client = AsyncIOMotorClient(settings.MONGO_URI)
-    database = client.get_default_database()
-    
+    client = AsyncMongoClient(settings.MONGO_URI)
+    try:
+        database = client.get_default_database()
+    except Exception:
+        database = client["saylo"]
+
     await init_beanie(
         database=database,
         document_models=[User, Interview, Resume]
     )
-    print("✅ MongoDB Connected Successfully!")
+    print("[OK] MongoDB Connected Successfully!")
+

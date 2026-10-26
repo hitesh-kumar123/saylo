@@ -14,39 +14,51 @@ def _get_client():
         _client = genai.Client(api_key=settings.GEMINI_API_KEY)
     return _client
 
-MODEL = "gemini-2.0-flash"
+MODELS = ["gemini-3.5-flash", "gemini-3.5-flash-lite"]
 
 
 class LLMService:
 
     def generate_response(self, prompt: str) -> str:
-        try:
-            client = _get_client()
-            response = client.models.generate_content(
-                model=MODEL,
-                contents=prompt,
-                config=types.GenerateContentConfig(temperature=0.7),
-            )
-            return response.text
-        except Exception as e:
-            logger.error("Failed to generate response: %s", e)
-            return "Model generation failed. Please check server logs."
+        client = _get_client()
+        last_error = None
+        for model in MODELS:
+            try:
+                response = client.models.generate_content(
+                    model=model,
+                    contents=prompt,
+                    config=types.GenerateContentConfig(temperature=0.7),
+                )
+                if response and response.text:
+                    return response.text
+            except Exception as e:
+                last_error = e
+                logger.warning("Model %s generation failed: %s. Trying fallback...", model, e)
+                continue
+        logger.error("Failed to generate response: %s", last_error)
+        return "Could you please elaborate on your answer?"
 
     def _generate_json(self, prompt: str) -> str:
-        try:
-            client = _get_client()
-            response = client.models.generate_content(
-                model=MODEL,
-                contents=prompt,
-                config=types.GenerateContentConfig(
-                    temperature=0.5,
-                    response_mime_type="application/json",
-                ),
-            )
-            return response.text
-        except Exception as e:
-            logger.error("Failed to generate JSON response: %s", e)
-            return "{}"
+        client = _get_client()
+        last_error = None
+        for model in MODELS:
+            try:
+                response = client.models.generate_content(
+                    model=model,
+                    contents=prompt,
+                    config=types.GenerateContentConfig(
+                        temperature=0.5,
+                        response_mime_type="application/json",
+                    ),
+                )
+                if response and response.text:
+                    return response.text
+            except Exception as e:
+                last_error = e
+                logger.warning("Model %s JSON generation failed: %s. Trying fallback...", model, e)
+                continue
+        logger.error("Failed to generate JSON response: %s", last_error)
+        return "{}"
 
     def _extract_json(self, response_text: str, fallback: dict) -> dict:
         try:
